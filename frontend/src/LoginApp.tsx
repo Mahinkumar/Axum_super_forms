@@ -18,7 +18,6 @@ function App() {
             <NavigationMenuList>
               <NavigationMenuItem>
                 <NavigationMenuTrigger>Forms</NavigationMenuTrigger>
-                <NavigationMenuTrigger>Statistics</NavigationMenuTrigger>
               </NavigationMenuItem>
             </NavigationMenuList>
           </NavigationMenu>
@@ -28,3 +27,4 @@ function App() {
 
 }
 export default App
+

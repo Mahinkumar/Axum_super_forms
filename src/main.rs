@@ -17,6 +17,7 @@ fn using_serve_dir() -> Router {
     // serve the file in the "assets" directory under `/assets`
     Router::new()
         .nest_service("/", ServeDir::new("./frontend/dist/"))
+        .nest_service("/login", ServeDir::new("./frontend/dist/login/"))
 }
 
 
