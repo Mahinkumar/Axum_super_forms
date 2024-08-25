@@ -14,6 +14,8 @@ export default defineConfig({
   },
   root: "template",
   build: {
+    outDir: '../dist',
+    emptyOutDir: true,
     rollupOptions: {
       input: {
         main: resolve(__dirname, "template/index.html"),
