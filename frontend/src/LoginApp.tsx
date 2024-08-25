@@ -1,5 +1,5 @@
 
-import './App.css'
+import './index.css'
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -7,11 +7,9 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu"
 
-let page = "Login";
 
 
 function App() {
-  if (page=="Login"){
       return (
         <>
           <NavigationMenu>
@@ -23,8 +21,6 @@ function App() {
           </NavigationMenu>
         </>
       )
-}
-
 }
 export default App
 
