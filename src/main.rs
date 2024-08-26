@@ -1,5 +1,6 @@
 
 use axum::{response::Html, routing::get,Router};
+use tower_cookies::cookie::SameSite;
 use std::net::SocketAddr;
 use tower_http::{
     services::ServeDir,
@@ -13,6 +14,7 @@ use tower_cookies::{Cookie,Cookies, CookieManagerLayer};
 
 #[tokio::main]
 async fn main() {
+    println!("Backend: Starting Axum Super forms");
     tokio::join!(
         serve(using_serve_dir(), 3000),
     );
@@ -24,15 +26,15 @@ fn using_serve_dir() -> Router {
     Router::new()
         .route("/", get(home_handler))
         .route("/login", get(login_handler))
-        .route_service("/assets", ServeDir::new("./frontend/dist/assets"))
+        .nest_service("/assets", ServeDir::new("./frontend/dist/assets"))
         
         .layer(CookieManagerLayer::new())
     }
 
 async fn serve(app: Router, port: u16) {
+    println!("Serving on port {port}");
     let addr = SocketAddr::from(([127, 0, 0, 1], port));
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-    tracing::debug!("listening on {}", listener.local_addr().unwrap());
     axum::serve(listener, app.layer(TraceLayer::new_for_http()))
         .await
         .unwrap();
@@ -52,7 +54,9 @@ async fn login_handler(cookies: Cookies) -> Html<String> {
     read_html_from_file("./frontend/dist/login/index.html").await.unwrap_or_else(|_| {
         "<h1>Error loading HTML file</h1>".to_string()
     });
-    cookies.add(Cookie::new("key", "aka_123"));
+    let mut cookie = Cookie::new("Session Token", "XFASFACAFASFASFASFAFA");
+    cookie.set_same_site(SameSite::Lax);
+    cookies.add(cookie);
     Html(html_content)
 }
 
