@@ -11,12 +11,14 @@ use tokio::fs::File;
 use tokio::io::{self, AsyncReadExt};
 use tower_cookies::{Cookie,Cookies, CookieManagerLayer};
 
+const ADDR: [u8;4] = [127, 0, 0, 1];
+const PORT: u16 = 5173;
 
 #[tokio::main]
 async fn main() {
-    println!("Backend: Starting Axum Super forms");
+    println!("Starting Axum Super forms Server.");
     tokio::join!(
-        serve(using_serve_dir(), 3000),
+        serve(using_serve_dir(), PORT),
     );
 }
 
@@ -32,8 +34,9 @@ fn using_serve_dir() -> Router {
     }
 
 async fn serve(app: Router, port: u16) {
-    println!("Serving on port {port}");
-    let addr = SocketAddr::from(([127, 0, 0, 1], port));
+    
+    println!("Serving on address: http://127.0.0.1:{PORT}");
+    let addr = SocketAddr::from((ADDR, port));
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, app.layer(TraceLayer::new_for_http()))
         .await
