@@ -6,7 +6,7 @@ use tower_http::trace::TraceLayer;
 
 const ADDR: [u8; 4] = [127, 0, 0, 1];
 const PORT: u16 = 3000;
-const FRONTEND_PATH: &str = "./client/dist";
+const FRONTEND_PATH: &str = "./frontend/dist";
 
 #[tokio::main]
 async fn main() {
