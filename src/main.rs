@@ -5,7 +5,7 @@ use tower_http::services::{ServeDir, ServeFile};
 use tower_http::trace::TraceLayer;
 
 const ADDR: [u8; 4] = [127, 0, 0, 1];
-const PORT: u16 = 3000;
+const PORT: u16 = 8000;
 const FRONTEND_PATH: &str = "./client/dist";
 
 #[tokio::main]
