@@ -1,8 +1,8 @@
 #!/bin/bash
 
 echo "======================================="
-cd frontend
-echo "Building Frontend"
+cd client
+echo "Building client"
 npm run build
 echo "Frontend Build Success!"
 cd ..
