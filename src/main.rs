@@ -1,5 +1,11 @@
 use axum::Router;
+use dotenv::dotenv;
+use std::env;
 use std::net::SocketAddr;
+//use bb8::{Pool, PooledConnection};
+use bb8_redis::bb8;
+use bb8_redis::RedisConnectionManager;
+use redis::AsyncCommands;
 
 pub mod router;
 use router::using_serve_dir;
@@ -8,11 +14,12 @@ use router::using_serve_dir;
 //use tower_http::trace::TraceLayer;
 
 const ADDR: [u8; 4] = [127, 0, 0, 1];
-const PORT: u16 = 8000;
+const PORT_HOST: u16 = 8000;
 
 #[tokio::main]
 
 async fn main() {
+    dotenv().ok();
     // Use for Debug only!! Heavily reduces perfomance
     // tracing_subscriber::registry()
     //     .with(
@@ -23,18 +30,33 @@ async fn main() {
     //     .with(tracing_subscriber::fmt::layer())
     //     .init();
     println!("Starting Axum Super forms Server.");
-    tokio::join!(serve(using_serve_dir(), PORT),);
+    print!("Connecting to redis : ");
+
+    let manager = RedisConnectionManager::new(
+        env::var("REDIS_CONNECTION_URL").expect("REDIS_CONNECTION_URL env variable missing !"),
+    )
+    .unwrap();
+
+    let pool = bb8::Pool::builder().build(manager).await.unwrap();
+
+    print!("Connected ! \nPinging Redis: ");
+
+    {
+        // ping the database before starting
+        let mut conn = pool.get().await.unwrap();
+        conn.set::<&str, &str, ()>("Check", "Response recieved !")
+            .await
+            .unwrap();
+        let result: String = conn.get("Check").await.unwrap();
+        println!("{}", result);
+    }
+
+    tokio::join!(serve(using_serve_dir(), PORT_HOST),);
 }
 
-
-
 async fn serve(app: Router, port: u16) {
-    println!("Serving on address: http://127.0.0.1:{PORT}");
+    println!("Serving on address: http://127.0.0.1:{port}");
     let addr = SocketAddr::from((ADDR, port));
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-    axum::serve(listener, app
-        
-    )
-        .await
-        .unwrap();
+    axum::serve(listener, app).await.unwrap();
 }
