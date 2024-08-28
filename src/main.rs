@@ -30,7 +30,7 @@ async fn main() {
     //     .with(tracing_subscriber::fmt::layer())
     //     .init();
     println!("Starting Axum Super forms Server.");
-    print!("Connecting to redis : ");
+    println!("Connecting to Redis Backend ..");
 
     let manager = RedisConnectionManager::new(
         env::var("REDIS_CONNECTION_URL").expect("REDIS_CONNECTION_URL env variable missing !"),
@@ -39,12 +39,12 @@ async fn main() {
 
     let pool = bb8::Pool::builder().build(manager).await.unwrap();
 
-    print!("Connected ! \nPinging Redis: ");
+    print!("Pinging Redis: ");
 
     {
         // ping the database before starting
         let mut conn = pool.get().await.unwrap();
-        conn.set::<&str, &str, ()>("Check", "Response recieved !")
+        conn.set::<&str, &str, ()>("Check", "Response recieved!")
             .await
             .unwrap();
         let result: String = conn.get("Check").await.unwrap();
