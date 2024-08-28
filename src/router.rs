@@ -1,10 +1,10 @@
 use axum::Router;
-use tower_cookies::CookieManagerLayer;
 use axum::{
     http::{header, StatusCode, Uri},
     response::{Html, IntoResponse, Response},
 };
 use rust_embed::Embed;
+use tower_cookies::{Cookie, CookieManagerLayer, Cookies};
 
 static INDEX_HTML: &str = "index.html";
 
@@ -21,7 +21,7 @@ pub fn using_serve_dir() -> Router {
     //  .layer(TraceLayer::new_for_http()) // For Debug only
 }
 
-async fn static_handler(uri: Uri) -> impl IntoResponse {
+async fn static_handler(uri: Uri, cookie: Cookies) -> impl IntoResponse {
     let path = uri.path().trim_start_matches('/');
 
     if path.is_empty() || path == INDEX_HTML {
@@ -31,14 +31,13 @@ async fn static_handler(uri: Uri) -> impl IntoResponse {
     match Assets::get(path) {
         Some(content) => {
             let mime = mime_guess::from_path(path).first_or_octet_stream();
-
             ([(header::CONTENT_TYPE, mime.as_ref())], content.data).into_response()
         }
         None => {
+            cookie.add(Cookie::new("Cookie_aka", "Cookie"));
             if path.contains('.') {
                 return not_found().await;
             }
-
             index_html().await
         }
     }
