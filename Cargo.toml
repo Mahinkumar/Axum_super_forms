@@ -6,6 +6,8 @@ edition = "2021"
 [dependencies]
 axum = "0.7.5"
 axum-extra = "0.9.3"
+mime_guess = "2.0.5"
+rust-embed = "8.5.0"
 tokio = { version = "1.39.3", features = ["full"] }
 tower = { version = "0.5", features = ["util"] }
 tower-cookies = "0.10.0"
