@@ -10,7 +10,7 @@ use redis::AsyncCommands;
 pub mod router;
 pub mod auth;
 
-use auth::{create_token,decode_token};
+use auth::{create_token,validate_token};
 use router::service_router;
 
 //use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -57,7 +57,7 @@ async fn main() {
     }
 
     let token_test = create_token("Tester@mail.com", "Tester");
-    decode_token(token_test);
+    validate_token(token_test);
     
     tokio::join!(serve(service_router(), PORT_HOST));
 }

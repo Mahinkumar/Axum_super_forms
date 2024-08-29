@@ -90,16 +90,15 @@ pub fn create_token(email: &str, username: &str) -> String {
     token
 }
 
-pub fn decode_token(token: String) -> Header {
-    let token = match decode::<Claims>(
-        &token,
-        &DecodingKey::from_secret(KEY),
-        &Validation::new(Algorithm::HS512),
-    ) {
+pub fn validate_token(token: String) -> Header {
+    let mut validation = Validation::new(Algorithm::HS512);
+    validation.set_required_spec_claims(&["exp", "iat", "user","sub"]);
+    let token = match decode::<Claims>(&token, &DecodingKey::from_secret(KEY), &validation) {
         Ok(c) => c,
         Err(err) => match *err.kind() {
-            ErrorKind::InvalidToken => panic!(), // Example on how to handle a specific error
-            _ => panic!(),
+            ErrorKind::InvalidToken => panic!("Token is invalid"), // Example on how to handle a specific error
+            ErrorKind::ExpiredSignature => panic!("Signature Expired"), // Example on how to handle a specific error
+            _ => panic!("{err}"),
         },
     };
     //println!("{:?}",token.header);
