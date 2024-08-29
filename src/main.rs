@@ -8,7 +8,7 @@ use bb8_redis::RedisConnectionManager;
 use redis::AsyncCommands;
 
 pub mod router;
-use router::using_serve_dir;
+use router::service_router;
 
 //use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 //use tower_http::trace::TraceLayer;
@@ -33,7 +33,7 @@ async fn main() {
     println!("Connecting to Redis Backend ..");
 
     let manager = RedisConnectionManager::new(
-        env::var("REDIS_CONNECTION_URL").expect("REDIS_CONNECTION_URL env variable missing !"),
+        env::var("REDIS_CONNECTION_URL").expect("env variable REDIS_CONNECTION_URL must be set!"),
     )
     .unwrap();
 
@@ -50,8 +50,7 @@ async fn main() {
         let result: String = conn.get("Check").await.unwrap();
         println!("{}", result);
     }
-
-    tokio::join!(serve(using_serve_dir(), PORT_HOST),);
+    tokio::join!(serve(service_router(), PORT_HOST));
 }
 
 async fn serve(app: Router, port: u16) {

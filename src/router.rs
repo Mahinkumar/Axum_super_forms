@@ -14,7 +14,7 @@ struct Assets;
 
 //use tower_http::trace::TraceLayer;
 
-pub fn using_serve_dir() -> Router {
+pub fn service_router() -> Router {
     Router::new()
         .fallback(static_handler)
         .layer(CookieManagerLayer::new())

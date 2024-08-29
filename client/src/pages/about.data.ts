@@ -1,4 +1,5 @@
 import type { RouteDataFunc } from '@solidjs/router';
+import { getCookie, setCookie } from 'typescript-cookie'
 import { createResource, Resource } from 'solid-js';
 
 function wait<T>(ms: number, data: T): Promise<T> {
@@ -10,6 +11,7 @@ function random(min: number, max: number): number {
 }
 
 function fetchName(): Promise<string> {
+  setCookie('Cookie_from', 'browser');
   return wait(random(500, 1000), 'Solid');
 }
 
