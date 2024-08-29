@@ -17,7 +17,8 @@ bb8-redis = "0.14.0"
 redis = "0.24.0"
 dotenv = "0.15.0"
 jsonwebtoken = "9.3.0"
-serde = "1.0.209"
+serde = {version = "1.0.209", features = ["derive"]} 
+time = "0.3.36"
 
 # Enable for Debugging only
 # tracing = "0.1.40"
