@@ -16,6 +16,7 @@ bb8 = "0.7.1"
 bb8-redis = "0.14.0"
 redis = "0.24.0"
 dotenv = "0.15.0"
+jsonwebtoken = "9.3.0"
 
 # Enable for Debugging only
 # tracing = "0.1.40"
