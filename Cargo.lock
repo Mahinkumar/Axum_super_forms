@@ -124,6 +124,7 @@ dependencies = [
  "mime_guess",
  "redis",
  "rust-embed",
+ "serde",
  "tokio",
  "tower 0.5.0",
  "tower-cookies",

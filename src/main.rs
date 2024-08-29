@@ -8,6 +8,9 @@ use bb8_redis::RedisConnectionManager;
 use redis::AsyncCommands;
 
 pub mod router;
+pub mod auth;
+
+use auth::{create_token,decode_token};
 use router::service_router;
 
 //use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -17,6 +20,7 @@ const ADDR: [u8; 4] = [127, 0, 0, 1];
 const PORT_HOST: u16 = 8000;
 
 #[tokio::main]
+
 
 async fn main() {
     dotenv().ok();
@@ -29,6 +33,7 @@ async fn main() {
     //     )
     //     .with(tracing_subscriber::fmt::layer())
     //     .init();
+
     println!("Starting Axum Super forms Server.");
     println!("Connecting to Redis Backend ..");
 
@@ -50,6 +55,10 @@ async fn main() {
         let result: String = conn.get("Check").await.unwrap();
         println!("{}", result);
     }
+
+    let token_test = create_token("Tester@mail.com", "Tester");
+    decode_token(token_test);
+    
     tokio::join!(serve(service_router(), PORT_HOST));
 }
 

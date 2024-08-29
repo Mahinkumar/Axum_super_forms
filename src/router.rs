@@ -1,10 +1,14 @@
-use axum::Router;
+use axum::routing::get;
+use axum::{middleware, Router};
 use axum::{
     http::{header, StatusCode, Uri},
     response::{Html, IntoResponse, Response},
 };
 use rust_embed::Embed;
 use tower_cookies::{Cookie, CookieManagerLayer, Cookies};
+
+use crate::auth::authorization_middleware;
+
 
 static INDEX_HTML: &str = "index.html";
 
@@ -16,8 +20,9 @@ struct Assets;
 
 pub fn service_router() -> Router {
     Router::new()
-        .fallback(static_handler)
+        .fallback(get(static_handler))
         .layer(CookieManagerLayer::new())
+        .layer(middleware::from_fn(authorization_middleware))
     //  .layer(TraceLayer::new_for_http()) // For Debug only
 }
 
