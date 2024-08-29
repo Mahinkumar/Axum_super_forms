@@ -8,9 +8,10 @@ use bb8_redis::RedisConnectionManager;
 use redis::AsyncCommands;
 
 pub mod router;
+pub mod jwt_auth;
 pub mod auth;
 
-use auth::{create_token,validate_token};
+use jwt_auth::{create_token,validate_token};
 use router::service_router;
 
 //use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};

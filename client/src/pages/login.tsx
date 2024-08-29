@@ -22,8 +22,9 @@ export default function Home() {
 function Auth_form() {
   return (
     <>
-      <form class="space-y-4 flex flex-col justify-around items-center">
+      <form method="post" class="space-y-4 flex flex-col justify-around items-center">
         <input
+          name="email"
           type="email"
           placeholder="Email Address"
           class="block w-[80%] px-4 py-2 text-gray-700 border 
@@ -31,6 +32,7 @@ rounded-lg appearance-none focus:outline-none focus:border-blue-300
 bg-gray-100"
         />
         <input
+          name="password"
           type="password"
           placeholder="Password"
           class="block w-[80%] px-4 py-2 text-gray-700 border 

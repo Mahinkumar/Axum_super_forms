@@ -19,6 +19,8 @@ dotenv = "0.15.0"
 jsonwebtoken = "9.3.0"
 serde = {version = "1.0.209", features = ["derive"]} 
 time = "0.3.36"
+argon2 = "0.5.3"
+rand = "0.8.5"
 
 # Enable for Debugging only
 # tracing = "0.1.40"
