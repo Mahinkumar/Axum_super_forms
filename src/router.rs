@@ -39,9 +39,10 @@ pub fn service_router() -> Router {
 }
 
 async fn login_handler(uri: Uri,Form(login): Form<Login>) -> impl IntoResponse{
-    let hash = hash_password(login.password.as_bytes());
+    let hash = hash_password(login.password.as_bytes()).await;
     println!("Form from {} Posted {} and Password hash was generated",uri, login.email);
     println!("Hash : {}",hash);
+    
     Redirect::to("/")
 }
 

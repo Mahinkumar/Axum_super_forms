@@ -67,7 +67,7 @@ impl Claims {
 
 const KEY: &[u8] = b"TheUltimateKey";
 
-pub fn create_token(email: &str, username: &str) -> String {
+pub async fn create_token(email: &str, username: &str) -> String {
     let iat = OffsetDateTime::now_utc();
     let exp = iat + Duration::days(1);
 
@@ -87,7 +87,7 @@ pub fn create_token(email: &str, username: &str) -> String {
     token
 }
 
-pub fn validate_token(token: String) -> Header {
+pub async fn validate_token(token: String) -> Header {
     let mut validation = Validation::new(Algorithm::HS512);
     validation.set_required_spec_claims(&["exp", "iat", "user","sub"]);
     let token = match decode::<Claims>(&token, &DecodingKey::from_secret(KEY), &validation) {
@@ -104,8 +104,8 @@ pub fn validate_token(token: String) -> Header {
 }
 
 pub async fn authorization_middleware(mut req: Request, next: Next) -> Response<Body> {
-    let _auth_header = req.headers_mut().get(http::header::AUTHORIZATION);
-    //println!("{:?}",auth_header);
+    let auth_header = req.headers_mut().get(http::header::AUTHORIZATION);
+    println!("{:?}",auth_header);
     //We Do the authentication here or redirect to login page
     let response = next.run(req).await;
     response
