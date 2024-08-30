@@ -1,6 +1,8 @@
+
+
 use axum::response::Redirect;
-use axum::routing::{get, post};
-use axum::{middleware, Router};
+use axum::routing::get;
+use axum::Router;
 use axum::Form;
 use axum::{
     http::{header, StatusCode, Uri},
@@ -10,7 +12,6 @@ use rust_embed::Embed;
 use serde::Deserialize;
 use tower_cookies::{Cookie, CookieManagerLayer, Cookies};
 
-use crate::auth::hash_password;
 
 #[derive(Deserialize)]
 struct Login{
@@ -18,7 +19,8 @@ struct Login{
     password: String,
 }
 
-use crate::jwt_auth::authorization_middleware;
+use crate::auth::hash_password;
+use crate::jwt_auth::create_token;
 
 
 static INDEX_HTML: &str = "index.html";
@@ -32,24 +34,32 @@ struct Assets;
 pub fn service_router() -> Router {
     Router::new()
         .fallback(get(static_handler))
-        .route("/login", post(login_handler).get(static_handler))
-        .layer(middleware::from_fn(authorization_middleware))
+        .route("/login", get(static_handler).post(login_handler))
         .layer(CookieManagerLayer::new())
     //  .layer(TraceLayer::new_for_http()) // For Debug only
 }
 
-async fn login_handler(uri: Uri,Form(login): Form<Login>) -> impl IntoResponse{
-    let hash = hash_password(login.password.as_bytes()).await;
+async fn login_handler(cookie: Cookies,uri: Uri,Form(login): Form<Login>) -> impl IntoResponse{
     println!("Form from {} Posted {} and Password hash was generated",uri, login.email);
-    println!("Hash : {}",hash);
-    
+    let _hash = hash_password(login.password.as_bytes());
+    let token = create_token(&login.email, &login.email);
+    embed_token(token.await,cookie).await;
     Redirect::to("/")
 }
 
-async fn static_handler(uri: Uri, cookie: Cookies) -> impl IntoResponse {
-    let path = uri.path().trim_start_matches('/');
 
+pub async fn embed_token(token : String,cookie: Cookies){
+    let mut auth_cookie = Cookie::new("access_token",token);
+    auth_cookie.set_http_only(true);
+    auth_cookie.set_secure(true);
+    cookie.add(auth_cookie)
+}
+
+async fn static_handler(uri: Uri, cookie: Cookies) -> impl IntoResponse {
+    let is_cookie = cookie.get("access_token").is_none();
+    let path = uri.path().trim_start_matches('/');
     if path.is_empty() || path == INDEX_HTML {
+        if is_cookie {return to_login().await}
         return index_html().await;
     }
 
@@ -59,11 +69,10 @@ async fn static_handler(uri: Uri, cookie: Cookies) -> impl IntoResponse {
             ([(header::CONTENT_TYPE, mime.as_ref())], content.data).into_response()
         }
         None => {
-            cookie.add(Cookie::new("Cookie_aka", "Cookie"));
             if path.contains('.') {
                 return not_found().await;
             }
-            index_html().await
+            return index_html().await;
         }
     }
 }
@@ -77,4 +86,8 @@ async fn index_html() -> Response {
 
 async fn not_found() -> Response {
     (StatusCode::NOT_FOUND, "404").into_response()
+}
+
+async fn to_login() -> Response{
+    Redirect::to("/login").into_response()
 }

@@ -24,3 +24,4 @@ pub async fn verify_hash(password_hash: &str, password: &str) -> bool {
         .verify_password(password.as_bytes(), &parsed_hash)
         .is_ok()
 }
+

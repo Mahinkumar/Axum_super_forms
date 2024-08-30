@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use axum::{body::Body, extract::Request, http, http::Response, middleware::Next};
 use time::{Duration, OffsetDateTime};
 use jsonwebtoken::errors::ErrorKind;
 use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
@@ -87,7 +86,7 @@ pub async fn create_token(email: &str, username: &str) -> String {
     token
 }
 
-pub async fn validate_token(token: String) -> Header {
+pub async fn validate_token(token: String) -> bool {
     let mut validation = Validation::new(Algorithm::HS512);
     validation.set_required_spec_claims(&["exp", "iat", "user","sub"]);
     let token = match decode::<Claims>(&token, &DecodingKey::from_secret(KEY), &validation) {
@@ -100,14 +99,5 @@ pub async fn validate_token(token: String) -> Header {
     };
     //println!("{:?}",token.header);
     //println!("{:?}",token.claims);
-    token.header
+    token.header.kid.expect("Unable to solve Key ID") == "signing_key"
 }
-
-pub async fn authorization_middleware(mut req: Request, next: Next) -> Response<Body> {
-    let auth_header = req.headers_mut().get(http::header::AUTHORIZATION);
-    println!("{:?}",auth_header);
-    //We Do the authentication here or redirect to login page
-    let response = next.run(req).await;
-    response
-}
-
