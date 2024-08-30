@@ -1,7 +1,7 @@
-
-
+use tower_http::cors::CorsLayer;
 use axum::response::Redirect;
 use axum::routing::get;
+use axum::Json;
 use axum::Router;
 use axum::Form;
 use axum::{
@@ -36,6 +36,7 @@ pub fn service_router() -> Router {
         .fallback(get(static_handler))
         .route("/login", get(static_handler).post(login_handler))
         .layer(CookieManagerLayer::new())
+        .layer(CorsLayer::permissive())
     //  .layer(TraceLayer::new_for_http()) // For Debug only
 }
 

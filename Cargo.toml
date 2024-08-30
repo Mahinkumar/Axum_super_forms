@@ -11,7 +11,7 @@ rust-embed = "8.5.0"
 tokio = { version = "1.39.3", features = ["full"] }
 tower = { version = "0.5", features = ["util"] }
 tower-cookies = "0.10.0"
-tower-http = { version = "0.5.0", features = ["fs", "trace"] }
+tower-http = { version = "0.5.0", features = ["fs", "trace","cors"] }
 bb8 = "0.7.1"
 bb8-redis = "0.14.0"
 redis = "0.24.0"
@@ -21,6 +21,7 @@ serde = {version = "1.0.209", features = ["derive"]}
 time = "0.3.36"
 argon2 = "0.5.3"
 rand = "0.8.5"
+axum-util = "0.2.2"
 
 # Enable for Debugging only
 # tracing = "0.1.40"
