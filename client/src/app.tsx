@@ -20,6 +20,9 @@ function Nav() {
   return (
     <nav class="bg-gray-200 text-gray-900 px-4">
       <ul class="flex items-center">
+        <li class="py-2 px-4 pr-12">
+          <h1 class="text-bold text-xl">Axum Super Forms</h1>
+        </li>
         <li class="py-2 px-4">
           <Link href="/" class="no-underline hover:underline">
             Home
@@ -30,17 +33,6 @@ function Nav() {
             forms
           </Link>
         </li>
-        <li class="py-2 px-4">
-          <Link href="/login" class="no-underline hover:underline">
-            Login
-          </Link>
-        </li>
-        <li class="py-2 px-4">
-          <Link href="/error" class="no-underline hover:underline">
-            Error
-          </Link>
-        </li>
-
         <li class="text-sm flex items-center space-x-1 ml-auto">
           <span>URL:</span>
           <input

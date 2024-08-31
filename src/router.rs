@@ -40,6 +40,11 @@ pub fn service_router() -> Router {
     //  .layer(TraceLayer::new_for_http()) // For Debug only
 }
 
+pub fn api_router() -> Router {
+    Router::new()
+        .route("/api", get(|| async {Json("NOT IMPLEMENTED")}))
+}
+
 async fn login_handler(cookie: Cookies,uri: Uri,Form(login): Form<Login>) -> impl IntoResponse{
     println!("Form from {} Posted {} and Password hash was generated",uri, login.email);
     let _hash = hash_password(login.password.as_bytes());

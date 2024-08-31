@@ -6,7 +6,7 @@ pub mod jwt_auth;
 pub mod auth;
 pub mod mem_kv;
 
-use router::service_router;
+use router::{api_router, service_router};
 use mem_kv::ping;
 
 //use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -34,7 +34,8 @@ async fn main() {
 
     print!("Redis Active : ");
     println!("{}",ping().await);
-    tokio::join!(serve(service_router(), PORT_HOST));
+
+    tokio::join!(serve(service_router().merge(api_router()), PORT_HOST));
 }
 
 async fn serve(app: Router, port: u16) {
