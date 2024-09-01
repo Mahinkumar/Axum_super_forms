@@ -2,3 +2,4 @@
 /data
 .env
 compose.yaml
+client/pnpm-lock.yaml
