@@ -1,11 +1,9 @@
 #!/bin/bash
 
 echo "======================================="
-cd client
 echo "Building client"
 npm run build
 echo "Frontend Build Success!"
-cd ..
 echo "======================================="
 echo "Building Backend"
 cargo build --release
