@@ -11,7 +11,11 @@
     <section class="bg-gray-100 text-gray-700 p-8">
         <p class="mt-4">This is a Login page</p>
         <p class="mt-4">Hello {{name}}.</p>
-        <p class="mt-4">We don't have any templates here.</p>
+        <form method="post" class="flex flex-col space-y-4 w-64">
+          <input type="email" name="email"/>
+          <input type="password" name="password"/>
+          <button type="submit">Submit</button>
+        </form>
     </section>
   </body>
 </html>
