@@ -4,7 +4,7 @@
 
 
 # Axum Super Forms
-A Self hostable, blazingly fast forms solution built with Rust and Solid JS Client with a focus on simplicity and reliablity. 
+A Self hostable, blazingly fast forms solution built with Rust with a focus on simplicity and reliablity. 
 
 ## Features
 1. Admin console with realtime analytics
