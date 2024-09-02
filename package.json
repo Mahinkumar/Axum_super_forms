@@ -1,0 +1,9 @@
+{
+  "devDependencies": {
+    "tailwindcss": "^3.4.10"
+  },
+  "scripts":{
+    "dev":"npx tailwindcss -i ./templates/app.css -o ./templates/assets/output.css --watch"
+  }
+}
+

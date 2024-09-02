@@ -22,6 +22,8 @@ time = "0.3.36"
 argon2 = "0.5.3"
 rand = "0.8.5"
 axum-util = "0.2.2"
+askama_axum = "0.4.0"
+askama = "0.12.1"
 
 # Enable for Debugging only
 # tracing = "0.1.40"

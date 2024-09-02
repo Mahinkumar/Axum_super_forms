@@ -3,3 +3,5 @@
 .env
 compose.yaml
 client/pnpm-lock.yaml
+/node_modules
+

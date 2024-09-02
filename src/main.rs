@@ -5,8 +5,10 @@ pub mod router;
 pub mod jwt_auth;
 pub mod auth;
 pub mod mem_kv;
+pub mod client;
 
-use router::{api_router, service_router};
+use router::api_router;
+use client::service_router;
 use mem_kv::ping;
 
 //use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
