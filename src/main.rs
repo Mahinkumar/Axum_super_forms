@@ -36,17 +36,18 @@ async fn main() {
     //     .with(tracing_subscriber::fmt::layer())
     //     .init();
 
+    println!("=================================================================");
     println!("Starting Axum Super forms Server.");
-
-    print!("Redis Active : ");
-    println!("{}",ping().await);
-    ping_db().await;
+    println!("Redis Status       : {}", if ping().await {"Connected"} else {"Unable to connect"});
+    println!("Postgres Status    : {}", if ping_db().await {"Connected"} else {"Unable to connect"});
+    
 
     tokio::join!(serve(service_router().merge(api_router()), PORT_HOST));
 }
 
 async fn serve(app: Router, port: u16) {
-    println!("Serving on address: http://127.0.0.1:{port}");
+    println!("Serving on address : http://127.0.0.1:{port}");
+    println!("=================================================================");
     let addr = SocketAddr::from((ADDR, port));
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, app).await.unwrap();
