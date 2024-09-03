@@ -6,10 +6,12 @@ pub mod jwt_auth;
 pub mod auth;
 pub mod mem_kv;
 pub mod client;
+pub mod db;
 
 use router::api_router;
 use client::service_router;
 use mem_kv::ping;
+use db::ping_db;
 
 //use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 //use tower_http::trace::TraceLayer;
@@ -36,6 +38,7 @@ async fn main() {
 
     print!("Redis Active : ");
     println!("{}",ping().await);
+    ping_db().await;
 
     tokio::join!(serve(service_router().merge(api_router()), PORT_HOST));
 }
