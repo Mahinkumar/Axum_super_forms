@@ -1,12 +1,12 @@
+use diesel::pg::PgConnection;
+use diesel::prelude::*;
 use dotenv::dotenv;
-use sea_orm::Database;
 use std::env;
 
-pub async fn ping_db(){
+pub fn ping_db(){
     dotenv().ok();
-    let _db = Database::connect(
-        env::var("DATABASE_URL").expect("env variable DATABASE_URL must be set!"),
-    )
-    .await;
-    println!("Connected to Postgres");
+    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    PgConnection::establish(&database_url)
+        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url));
+    println!("Postgres Active: true");
 }

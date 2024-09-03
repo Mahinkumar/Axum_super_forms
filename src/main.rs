@@ -7,6 +7,8 @@ pub mod auth;
 pub mod mem_kv;
 pub mod client;
 pub mod db;
+pub mod models;
+pub mod schema;
 
 use router::api_router;
 use client::service_router;
@@ -38,7 +40,7 @@ async fn main() {
 
     print!("Redis Active : ");
     println!("{}",ping().await);
-    ping_db().await;
+    ping_db();
 
     tokio::join!(serve(service_router().merge(api_router()), PORT_HOST));
 }

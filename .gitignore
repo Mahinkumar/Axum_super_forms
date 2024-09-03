@@ -5,3 +5,4 @@ compose.yaml
 client/pnpm-lock.yaml
 /node_modules
 /templates/assets/output.css
+/migrations
