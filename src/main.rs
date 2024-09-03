@@ -40,7 +40,7 @@ async fn main() {
 
     print!("Redis Active : ");
     println!("{}",ping().await);
-    ping_db();
+    ping_db().await;
 
     tokio::join!(serve(service_router().merge(api_router()), PORT_HOST));
 }
