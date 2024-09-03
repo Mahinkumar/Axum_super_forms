@@ -1,10 +1,10 @@
 use dotenv::dotenv;
-use jsonwebtoken::errors::ErrorKind;
 use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
 use std::env;
 use time::{Duration, OffsetDateTime};
 use tower_cookies::Cookies;
+//use jsonwebtoken::errors::ErrorKind;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 struct Claims {
@@ -101,8 +101,9 @@ pub async fn create_token(email: &str, username: &str) -> String {
 
 pub async fn validate_token(token: String) -> (bool,bool) {
     let mut validation = Validation::new(Algorithm::HS512);
+    
     validation.set_required_spec_claims(&["exp", "iat", "user", "sub","is_admin","admin_id"]);
-    let token = match decode::<Claims>(
+    let jwtoken = match decode::<Claims>(
         &token,
         &DecodingKey::from_secret(
             env::var("KEY")
@@ -110,17 +111,19 @@ pub async fn validate_token(token: String) -> (bool,bool) {
                 .as_bytes(),
         ),
         &validation,
-    ) {
+    )
+    {
         Ok(c) => c,
-        Err(err) => match *err.kind() {
-            ErrorKind::InvalidToken => panic!("Token is invalid"), // Example on how to handle a specific error
-            ErrorKind::ExpiredSignature => panic!("Signature Expired"), // Example on how to handle a specific error
-            _ => panic!("{err}"),
+        Err(err) => match *err.kind(){
+            _ => {
+                println!("Parsing JWT was unsuccessful. The JWT_auth manager provided following note: {err}"); 
+                return (false,false);
+            }
         },
     };
     //println!("{:?}",token.header);
     //println!("{:?}",token.claims);
-    (token.header.kid.expect("Unable to verify Key used") == "EnvKey",token.claims.is_admin)
+    (jwtoken.header.kid.expect("Unable to verify Key used") == "EnvKey",jwtoken.claims.is_admin)
 }
 
 pub async fn verify_cookie(cookies: &Cookies) -> (bool,bool) {
