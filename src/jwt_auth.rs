@@ -1,7 +1,8 @@
-use serde::{Deserialize, Serialize};
-use time::{Duration, OffsetDateTime};
 use jsonwebtoken::errors::ErrorKind;
 use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
+use serde::{Deserialize, Serialize};
+use time::{Duration, OffsetDateTime};
+use tower_cookies::Cookies;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 struct Claims {
@@ -19,7 +20,6 @@ mod jwt_numeric_date {
     use serde::{self, Deserialize, Deserializer, Serializer};
     use time::OffsetDateTime;
 
-    
     pub fn serialize<S>(date: &OffsetDateTime, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -88,7 +88,7 @@ pub async fn create_token(email: &str, username: &str) -> String {
 
 pub async fn validate_token(token: String) -> bool {
     let mut validation = Validation::new(Algorithm::HS512);
-    validation.set_required_spec_claims(&["exp", "iat", "user","sub"]);
+    validation.set_required_spec_claims(&["exp", "iat", "user", "sub"]);
     let token = match decode::<Claims>(&token, &DecodingKey::from_secret(KEY), &validation) {
         Ok(c) => c,
         Err(err) => match *err.kind() {
@@ -100,4 +100,18 @@ pub async fn validate_token(token: String) -> bool {
     //println!("{:?}",token.header);
     //println!("{:?}",token.claims);
     token.header.kid.expect("Unable to solve Key ID") == "signing_key"
+}
+
+pub async fn verify_cookie(cookies: &Cookies) -> bool {
+    let cookie = cookies.get("access_id");
+    if cookie.is_none() {
+        return false;
+    } else {
+        let unpacked_cookie = cookie.expect("Unable to read cookie");
+        if validate_token(unpacked_cookie.value().to_string()).await {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
