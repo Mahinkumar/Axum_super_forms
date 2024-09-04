@@ -1,36 +1,37 @@
-use axum::routing::post;
+use askama_axum::IntoResponse;
+use axum::body::Body;
+use axum::http::Response;
+use axum::{response::Redirect, routing::post};
 use axum::Router;
-use tower_cookies::{Cookie, CookieManagerLayer, Cookies};
+use tower_cookies::{Cookie, Cookies};
+use tower_http::services::ServeFile;
 
-use axum::response::Redirect;
-use axum::Form;
-use axum::{
-    http::Uri,
-    response::IntoResponse,
-};
-use serde::Deserialize;
-use tower_http::cors::CorsLayer;
-
-#[derive(Deserialize)]
-struct Login {
-    email: String,
-    password: String,
-}
+use crate::auth::{admin_login_handler, login_handler};
 
 
 //use tower_http::trace::TraceLayer;
 
-pub fn api_router() -> Router {
-    Router::new().route("/login", post(login_handler))
-    .layer(CookieManagerLayer::new())
-    .layer(CorsLayer::permissive())
+pub fn general_router() -> Router {
+    Router::new()
+        .route_service(
+            "/output.css",
+            ServeFile::new("./templates/assets/output.css"),
+        )
 }
 
-async fn login_handler(_cookie: Cookies, uri: Uri, Form(login): Form<Login>) -> impl IntoResponse {
-    println!(
-        "Form from {} Posted {} and Password hash was generated",
-        uri, login.email
-    );
+
+pub async fn to_login() -> Response<Body> {
+    Redirect::to("/login").into_response()
+}
+
+pub async fn to_home() -> Response<Body> {
+    Redirect::to("/").into_response()
+}
+
+pub fn login_router() -> Router {
+    Router::new()
+        .route("/login", post(login_handler))
+        .route("/admin/login", post(admin_login_handler))
 }
 
 pub async fn embed_token(token: String, cookie: Cookies) {
@@ -39,3 +40,4 @@ pub async fn embed_token(token: String, cookie: Cookies) {
     auth_cookie.set_secure(true);
     cookie.add(auth_cookie)
 }
+

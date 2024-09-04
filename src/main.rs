@@ -9,9 +9,12 @@ pub mod client;
 pub mod db;
 pub mod models;
 pub mod schema;
+pub mod admin;
 
-use router::api_router;
-use client::service_router;
+use router::general_router;
+use router::login_router;
+use admin::admin_router;
+use client::client_router;
 use mem_kv::ping;
 use db::ping_db;
 
@@ -41,8 +44,13 @@ async fn main() {
     println!("Redis Status       : {}", if ping().await {"Connected"} else {"Unable to connect"});
     println!("Postgres Status    : {}", if ping_db().await {"Connected"} else {"Unable to connect"});
     
+    let axum_router = Router::new()
+        .merge(login_router())
+        .merge(admin_router())
+        .merge(general_router())
+        .merge(client_router());
 
-    tokio::join!(serve(service_router().merge(api_router()), PORT_HOST));
+    tokio::join!(serve(axum_router, PORT_HOST));
 }
 
 async fn serve(app: Router, port: u16) {

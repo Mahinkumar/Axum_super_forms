@@ -1,8 +1,40 @@
+use serde::Deserialize;
 use argon2::{
     password_hash::{PasswordHash, PasswordHasher, SaltString},
     Argon2, PasswordVerifier,
 };
 use rand::rngs::OsRng;
+use tower_cookies::Cookies;
+use axum::Form;
+use axum::{
+    http::Uri,
+    response::IntoResponse,
+};
+
+#[derive(Deserialize)]
+pub struct AdminLogin {
+    email: String,
+    password: String,
+}
+
+#[derive(Deserialize)]
+pub struct UserLogin {
+    key: String,
+}
+
+pub async fn login_handler(_cookie: Cookies, uri: Uri, Form(login): Form<UserLogin>) -> impl IntoResponse {
+    println!(
+        "Form from {} Posted {} and was verified",
+        uri, login.key
+    );
+}
+
+pub async fn admin_login_handler(_cookie: Cookies, uri: Uri, Form(login): Form<AdminLogin>) -> impl IntoResponse {
+    println!(
+        "Form from {} Posted {} and Password hash was generated",
+        uri, login.email
+    );
+}
 
 pub async fn hash_password(password: &[u8]) -> String {
     let salt = SaltString::generate(&mut OsRng);
