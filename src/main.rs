@@ -7,8 +7,6 @@ pub mod auth;
 pub mod mem_kv;
 pub mod client;
 pub mod db;
-pub mod models;
-pub mod schema;
 pub mod admin;
 
 use router::general_router;

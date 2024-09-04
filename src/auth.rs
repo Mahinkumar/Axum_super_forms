@@ -34,6 +34,10 @@ pub async fn admin_login_handler(_cookie: Cookies, uri: Uri, Form(login): Form<A
         "Form from {} Posted {} and Password hash was generated",
         uri, login.email
     );
+    println!(
+        "The Generated hash is => {}", hash_password(login.password.as_bytes()).await
+    );
+    
 }
 
 pub async fn hash_password(password: &[u8]) -> String {
