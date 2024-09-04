@@ -16,7 +16,7 @@ pub struct HelloTemplate<'a> {
 #[derive(Template)]
 #[template(path = "login.html")]
 pub struct LoginTemplate<'a> {
-    name: &'a str,
+    message: &'a str,
 }
 
 #[derive(Template)]
@@ -83,7 +83,7 @@ pub async fn admin_login(cookies: Cookies) -> Response<Body> {
 }
 
 pub async fn login() -> Response<Body> {
-    let login = LoginTemplate { name: "world" }; // instantiate your struct
+    let login = LoginTemplate { message: "Enter you 8-character Secret key" }; // instantiate your struct
     login.into_response()
 }
 

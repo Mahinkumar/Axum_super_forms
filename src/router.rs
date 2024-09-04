@@ -17,8 +17,6 @@ struct Login {
     password: String,
 }
 
-use crate::auth::hash_password;
-use crate::jwt_auth::create_token;
 
 //use tower_http::trace::TraceLayer;
 
@@ -28,15 +26,11 @@ pub fn api_router() -> Router {
     .layer(CorsLayer::permissive())
 }
 
-async fn login_handler(cookie: Cookies, uri: Uri, Form(login): Form<Login>) -> impl IntoResponse {
+async fn login_handler(_cookie: Cookies, uri: Uri, Form(login): Form<Login>) -> impl IntoResponse {
     println!(
         "Form from {} Posted {} and Password hash was generated",
         uri, login.email
     );
-    let _hash = hash_password(login.password.as_bytes());
-    let token = create_token(&login.email, &login.email);
-    embed_token(token.await, cookie).await;
-    Redirect::to("/")
 }
 
 pub async fn embed_token(token: String, cookie: Cookies) {

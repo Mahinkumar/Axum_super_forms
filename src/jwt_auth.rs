@@ -6,6 +6,11 @@ use time::{Duration, OffsetDateTime};
 use tower_cookies::Cookies;
 //use jsonwebtoken::errors::ErrorKind;
 
+struct JWToken {
+    claim: Claims,
+    token: String,
+}
+
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 struct Claims {
     sub: String,
@@ -15,7 +20,7 @@ struct Claims {
     #[serde(with = "jwt_numeric_date")]
     exp: OffsetDateTime,
     is_admin: bool,
-    admin_id: String
+    admin_id: String,
 }
 
 mod jwt_numeric_date {
@@ -47,7 +52,14 @@ impl Claims {
     /// again, this function must be used for construction. `OffsetDateTime` contains a microsecond
     /// field but JWT timestamps are defined as UNIX timestamps (seconds). This function normalizes
     /// the timestamps.
-    pub fn new(sub: String, user: String, iat: OffsetDateTime, exp: OffsetDateTime, is_admin: bool, admin_id: String) -> Self {
+    pub fn new(
+        sub: String,
+        user: String,
+        iat: OffsetDateTime,
+        exp: OffsetDateTime,
+        is_admin: bool,
+        admin_id: String,
+    ) -> Self {
         let iat = iat
             .date()
             .with_hms_milli(iat.hour(), iat.minute(), iat.second(), 0)
@@ -65,73 +77,84 @@ impl Claims {
             iat,
             exp,
             is_admin,
-            admin_id
+            admin_id,
         }
     }
 }
 
-pub async fn create_token(email: &str, username: &str) -> String {
-    dotenv().ok();
-    let iat = OffsetDateTime::now_utc();
-    let exp = iat + Duration::days(1);
+impl JWToken {
+    pub async fn create_token(&mut self, email: &str, username: &str) -> JWToken {
+        dotenv().ok();
+        let iat = OffsetDateTime::now_utc();
+        let exp = iat + Duration::days(1);
 
-    // We only give is_admin as true here for testing purposes
-    let my_claims = Claims::new(email.to_owned(), username.to_owned(), iat, exp, false, "e32rf".to_string());
+        // We only give is_admin as true here for testing purposes
+        let claim = Claims::new(
+            email.to_owned(),
+            username.to_owned(),
+            iat,
+            exp,
+            false,
+            "e32rf".to_string(),
+        );
 
-    let header = Header {
-        kid: Some("EnvKey".to_owned()),
-        alg: Algorithm::HS512,
-        ..Default::default()
-    };
+        let header = Header {
+            kid: Some("EnvKey".to_owned()),
+            alg: Algorithm::HS512,
+            ..Default::default()
+        };
 
-    let token = match encode(
-        &header,
-        &my_claims,
-        &EncodingKey::from_secret(
-            env::var("KEY")
-                .expect("env variable KEY must be set!")
-                .as_bytes(),
-        ),
-    ) {
-        Ok(t) => t,
-        Err(_) => panic!(), // in practice you would return the error
-    };
-    token
+        let token = match encode(
+            &header,
+            &claim,
+            &EncodingKey::from_secret(
+                env::var("KEY")
+                    .expect("env variable KEY must be set!")
+                    .as_bytes(),
+            ),
+        ) {
+            Ok(t) => t,
+            Err(_) => panic!(), // in practice you would return the error
+        };
+        Self { claim, token }
+    }
+
+    pub async fn validate_token(token: String) -> (bool, bool) {
+        let mut validation = Validation::new(Algorithm::HS512);
+
+        validation.set_required_spec_claims(&["exp", "iat", "user", "sub", "is_admin", "admin_id"]);
+        let jwtoken = match decode::<Claims>(
+            &token,
+            &DecodingKey::from_secret(
+                env::var("KEY")
+                    .expect("env variable KEY must be set!")
+                    .as_bytes(),
+            ),
+            &validation,
+        ) {
+            Ok(c) => c,
+            Err(err) => match *err.kind() {
+                _ => {
+                    println!("Parsing JWT was unsuccessful. The JWT_auth manager provided following note: {err}");
+                    return (false, false);
+                }
+            },
+        };
+        //println!("{:?}",token.header);
+        //println!("{:?}",token.claims);
+        (
+            jwtoken.header.kid.expect("Unable to verify Key used") == "EnvKey",
+            !jwtoken.claims.is_admin,
+        )
+    }
 }
 
-pub async fn validate_token(token: String) -> (bool,bool) {
-    let mut validation = Validation::new(Algorithm::HS512);
-    
-    validation.set_required_spec_claims(&["exp", "iat", "user", "sub","is_admin","admin_id"]);
-    let jwtoken = match decode::<Claims>(
-        &token,
-        &DecodingKey::from_secret(
-            env::var("KEY")
-                .expect("env variable KEY must be set!")
-                .as_bytes(),
-        ),
-        &validation,
-    )
-    {
-        Ok(c) => c,
-        Err(err) => match *err.kind(){
-            _ => {
-                println!("Parsing JWT was unsuccessful. The JWT_auth manager provided following note: {err}"); 
-                return (false,false);
-            }
-        },
-    };
-    //println!("{:?}",token.header);
-    //println!("{:?}",token.claims);
-    (jwtoken.header.kid.expect("Unable to verify Key used") == "EnvKey",!jwtoken.claims.is_admin)
-}
-
-pub async fn verify_cookie(cookies: &Cookies) -> (bool,bool) {
+pub async fn verify_cookie(cookies: &Cookies) -> (bool, bool) {
     let cookie = cookies.get("access_token");
-    if cookie.is_none(){
-        return (false,false);
+    if cookie.is_none() {
+        return (false, false);
     } else {
         let unpacked_cookie = cookie.expect("Unable to read cookie");
-        validate_token(unpacked_cookie.value().to_string()).await
+        JWToken::validate_token(unpacked_cookie.value().to_string()).await
     }
 }
