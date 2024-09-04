@@ -44,6 +44,12 @@ pub struct AdminStatTemplate<'a> {
     id: &'a str,
 }
 
+#[derive(Template)]
+#[template(path = "adminLogin.html")]
+pub struct AdminLoginTemplate<'a> {
+    name: &'a str,
+}
+
 
 pub fn service_router() -> Router {
     Router::new()
@@ -51,6 +57,7 @@ pub fn service_router() -> Router {
         .route("/login", get(login))
         .route("/forms", get(forms))
         .route("/admin", get(admin))
+        .route("/admin/login", get(admin_login))
         .route_service(
             "/output.css",
             ServeFile::new("./templates/assets/output.css"),
@@ -65,6 +72,14 @@ pub async fn home(cookies: Cookies) -> Response<Body> {
     }
     let home = HelloTemplate { name: "world" }; // instantiate your struct
     home.into_response()
+}
+
+pub async fn admin_login(cookies: Cookies) -> Response<Body> {
+    if !verify_cookie(&cookies).await.0 {
+        return to_login().await;
+    }
+    let admin_login = AdminLoginTemplate { name: "world" }; // instantiate your struct
+    admin_login.into_response()
 }
 
 pub async fn login() -> Response<Body> {

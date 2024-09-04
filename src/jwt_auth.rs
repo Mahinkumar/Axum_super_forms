@@ -123,7 +123,7 @@ pub async fn validate_token(token: String) -> (bool,bool) {
     };
     //println!("{:?}",token.header);
     //println!("{:?}",token.claims);
-    (jwtoken.header.kid.expect("Unable to verify Key used") == "EnvKey",jwtoken.claims.is_admin)
+    (jwtoken.header.kid.expect("Unable to verify Key used") == "EnvKey",!jwtoken.claims.is_admin)
 }
 
 pub async fn verify_cookie(cookies: &Cookies) -> (bool,bool) {
