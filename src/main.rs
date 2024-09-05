@@ -1,4 +1,5 @@
 use axum::Router;
+use db::setup_db;
 use std::net::SocketAddr;
 
 pub mod router;
@@ -42,6 +43,7 @@ async fn main() {
     println!("Redis Server Status       : {}", if ping().await {"Active"} else {"Unable to connect"});
     println!("Postgres Server Status    : {}", if ping_db().await {"Active"} else {"Unable to connect"});
     
+    setup_db().await;
     let axum_router = Router::new()
         .merge(login_router())
         .merge(admin_router())

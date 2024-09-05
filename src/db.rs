@@ -11,6 +11,12 @@ pub async fn get_db_conn_pool() -> sqlx::Pool<Postgres> {
         .expect("Unable to create a connection pool")
 }
 
+pub async fn setup_db(){
+    let conn = get_db_conn_pool().await;
+    sqlx::query_file!("sql/setup_admin.sql").execute(&conn).await.expect("Unable to setup Admin db!");
+    sqlx::query_file!("sql/setup_user.sql").execute(&conn).await.expect("Unable to setup User db!");
+}
+
 pub async fn ping_db() -> bool {
     let pool = get_db_conn_pool().await;
     let row: (i64,) = sqlx::query_as("SELECT $1")
