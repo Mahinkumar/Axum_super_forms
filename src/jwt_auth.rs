@@ -6,13 +6,13 @@ use time::{Duration, OffsetDateTime};
 use tower_cookies::Cookies;
 //use jsonwebtoken::errors::ErrorKind;
 
-struct JWToken {
+pub struct JWToken {
     claim: Claims,
     token: String,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-struct Claims {
+pub struct Claims {
     sub: String,
     user: String,
     #[serde(with = "jwt_numeric_date")]
@@ -83,7 +83,7 @@ impl Claims {
 }
 
 impl JWToken {
-    pub async fn create_token(&mut self, email: &str, username: &str) -> JWToken {
+    pub async fn new(email: &str, username: &str, isadmin: bool, aid: &str) -> JWToken {
         dotenv().ok();
         let iat = OffsetDateTime::now_utc();
         let exp = iat + Duration::days(1);
@@ -94,8 +94,8 @@ impl JWToken {
             username.to_owned(),
             iat,
             exp,
-            false,
-            "e32rf".to_string(),
+            isadmin,
+            aid.to_string(),
         );
 
         let header = Header {
@@ -146,6 +146,9 @@ impl JWToken {
             jwtoken.header.kid.expect("Unable to verify Key used") == "EnvKey",
             !jwtoken.claims.is_admin,
         )
+    }
+    pub async fn return_token(self)->String{
+        self.token
     }
 }
 

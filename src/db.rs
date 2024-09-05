@@ -32,7 +32,7 @@ pub async fn setup_db() {
     )
     .await;
 
-    let admin_query = format!("INSERT INTO admins(aid,email,username,passkey,passhash) VALUES(1,'{admin_email}','ADMIN','{admin_passkey}','{admin_hash}');");
+    let admin_query = format!("INSERT INTO  admins(aid,email,username,passkey,passhash) VALUES(1,'{admin_email}','ADMIN','{admin_passkey}','{admin_hash}') ON CONFLICT DO NOTHING;");
 
     sqlx::query(&admin_query)
         .execute(&conn)
@@ -53,4 +53,10 @@ pub async fn ping_db() -> bool {
         .await
         .expect("Unable to make test query");
     row.0 == 150
+}
+
+pub async fn retrieve_admin(e_mail: String)-> Result<(i32,String,String),sqlx::Error>{
+    let pool = get_db_conn_pool().await;
+    let query = format!("SELECT aid,username,passhash FROM admins WHERE email='{e_mail}';");
+    sqlx::query_as(&query).fetch_one(&pool).await
 }

@@ -5,11 +5,13 @@ use argon2::{
 };
 use rand::rngs::OsRng;
 use tower_cookies::Cookies;
-use axum::Form;
+use axum::{response::Redirect, Form};
 use axum::{
     http::Uri,
     response::IntoResponse,
 };
+
+use crate::{db::retrieve_admin, jwt_auth::JWToken, router::{embed_token, to_login}};
 
 #[derive(Deserialize)]
 pub struct AdminLogin {
@@ -29,15 +31,26 @@ pub async fn login_handler(_cookie: Cookies, uri: Uri, Form(login): Form<UserLog
     );
 }
 
-pub async fn admin_login_handler(_cookie: Cookies, uri: Uri, Form(login): Form<AdminLogin>) -> impl IntoResponse {
+pub async fn admin_login_handler(cookie: Cookies, uri: Uri, Form(login): Form<AdminLogin>) -> impl IntoResponse {
     println!(
-        "Form from {} Posted {} and Password hash was generated",
-        uri, login.email
+        "Form posted from {} by {}.",
+        uri, &login.email
     );
-    println!(
-        "The Generated hash is => {}", hash_password(login.password.as_bytes()).await
-    );
-    
+    let email_copy = login.email.clone();
+    let admin_data = match retrieve_admin(login.email).await {
+        Ok(c) => c,
+        Err(err) => {println!("Unable to retrieve admin: {err}"); return to_login().await},
+    };
+
+
+    if !verify_hash(&admin_data.2,&login.password).await {
+        return to_login().await;
+    }
+
+    let token = JWToken::new(&email_copy, &admin_data.1, true, &admin_data.0.to_string()).await;
+    embed_token(token.return_token().await, cookie).await;
+    println!("Eavluated the Admin Login");
+    Redirect::to("/admin").into_response()
 }
 
 pub async fn hash_password(password: &[u8]) -> String {

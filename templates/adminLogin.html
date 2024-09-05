@@ -14,9 +14,9 @@
             <h1 class="text-3xl font-bold w-full h-8">Admin Login</h1>
             <h2 class="text-xl w-full h-8">{{message}}</h2>
           </div>
-          <form class="w-96 flex flex-col justify-around items-center space-y-4">
-            <input type="email" class="w-80 form-input block text-xl text-center" required placeholder="email">
-            <input type="password" class="w-80 form-input block text-xl text-center" required placeholder="password">
+          <form method="post" class="w-96 flex flex-col justify-around items-center space-y-4">
+            <input name="email" type="email" class="w-80 form-input block text-xl text-center" required placeholder="email">
+            <input name="password" type="password" class="w-80 form-input block text-xl text-center" required placeholder="password">
             <button type="submit" class="w-80 h-12 bg-black text-white">Submit</button>
           </form>
         </div>
