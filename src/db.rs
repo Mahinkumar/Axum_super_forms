@@ -1,7 +1,20 @@
-use crate::auth::hash_password;
+use crate::{auth::hash_password, mem_kv::get_redis_pool};
+use bb8_redis::redis::AsyncCommands;
 use dotenvy::dotenv;
+use serde::Serialize;
 use sqlx::{postgres::PgPoolOptions, Postgres};
 use std::env;
+use redis_macros::ToRedisArgs;
+
+//userid,email,username,passkey
+#[derive(Debug)]
+#[derive(Serialize, ToRedisArgs)]
+pub struct User {
+    userid: i32,
+    email: String,
+    username: String,
+    passkey: String,
+}
 
 pub async fn get_db_conn_pool() -> sqlx::Pool<Postgres> {
     dotenv().ok();
@@ -77,4 +90,19 @@ pub async fn retrieve_user(key: String) -> Result<(i32, String, String), sqlx::E
         .bind(key)
         .fetch_one(&pool)
         .await
+}
+
+pub async fn redis_copy(){
+    let db_pool = get_db_conn_pool().await;
+    let redis_pool = get_redis_pool().await;
+    let mut redis_conn = redis_pool.get().await.unwrap();
+    let all_kv: Vec<(i32,String, String, String)> =  sqlx::query_as("SELECT * FROM forms_user;").fetch_all(&db_pool).await.expect("Unable to fetch from Database");
+    print!("Setting up Redis          : ");
+    let mut count = 0;
+    for i in all_kv{
+        count += 1;
+        let j = User {email: i.1, username:i.2, passkey:i.3.clone(), userid:i.0};
+        redis_conn.set::<&str,&User, ()>(&i.3,&j).await.expect("Unable to load db into memory");
+    }
+    println!("Loaded {count} entries into Memory.");
 }

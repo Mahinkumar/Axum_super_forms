@@ -1,13 +1,13 @@
 use bb8_redis::bb8;
 use bb8_redis::bb8::Pool;
+use bb8_redis::redis::AsyncCommands;
 use bb8_redis::RedisConnectionManager;
 //use bb8::{Pool, PooledConnection};
 
 use dotenvy::dotenv;
-use redis::AsyncCommands;
 use std::env;
 
-pub async fn get_redis_con() -> Pool<RedisConnectionManager> {
+pub async fn get_redis_pool() -> Pool<RedisConnectionManager> {
     dotenv().ok();
     let manager = RedisConnectionManager::new(
         env::var("REDIS_CONNECTION_URL").expect("env variable REDIS_CONNECTION_URL must be set!"),
@@ -19,7 +19,7 @@ pub async fn get_redis_con() -> Pool<RedisConnectionManager> {
 }
 
 pub async fn ping() -> bool {
-    let pool = get_redis_con().await;
+    let pool = get_redis_pool().await;
     let mut conn = pool.get().await.unwrap();
     conn.set::<&str, &str, ()>("Check", "Response recieved!")
         .await

@@ -1,4 +1,5 @@
 use axum::Router;
+use db::redis_copy;
 use db::setup_db;
 use std::net::SocketAddr;
 
@@ -56,6 +57,7 @@ async fn main() {
     );
 
     setup_db().await;
+    redis_copy().await;
     let axum_router = Router::new()
         .merge(login_router())
         .merge(admin_router())
