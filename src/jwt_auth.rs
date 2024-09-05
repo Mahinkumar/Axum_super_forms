@@ -144,7 +144,7 @@ impl JWToken {
         //println!("{:?}",token.claims);
         (
             jwtoken.header.kid.expect("Unable to verify Key used") == "EnvKey",
-            !jwtoken.claims.is_admin,
+            jwtoken.claims.is_admin,
         )
     }
     pub async fn return_token(self)->String{

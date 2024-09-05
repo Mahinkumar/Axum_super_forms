@@ -1,7 +1,7 @@
 use askama_axum::{IntoResponse, Template};
-use axum::{body::Body, http::Response, routing::get, Router};
+use axum::{body::Body, http::Response, response::Redirect, routing::get, Router};
 use tower_cookies::{CookieManagerLayer, Cookies};
-use crate::{auth::admin_login_handler, jwt_auth::verify_cookie, router::{to_home, to_login}};
+use crate::jwt_auth::verify_cookie;
 
 
 #[derive(Template)]
@@ -41,8 +41,9 @@ pub fn admin_router() -> Router {
 }
 
 pub async fn admin(cookies: Cookies) -> Response<Body> {
-    if verify_cookie(&cookies).await.1{
-        return to_home().await;
+    let cookie_ver = verify_cookie(&cookies).await;
+    if !cookie_ver.1{
+        return Redirect::to("/admin/login").into_response()
     }
     let forms = AdminTemplate { name: "Hello" }; // instantiate your struct
     forms.into_response()
@@ -50,8 +51,8 @@ pub async fn admin(cookies: Cookies) -> Response<Body> {
 
 
 pub async fn admin_login(cookies: Cookies) -> Response<Body> {
-    if verify_cookie(&cookies).await.0 {
-        return to_login().await;
+    if verify_cookie(&cookies).await.1{
+        return Redirect::to("/admin").into_response()
     }
     let admin_login = AdminLoginTemplate { message: "Enter your credentials" }; // instantiate your struct
     admin_login.into_response()
