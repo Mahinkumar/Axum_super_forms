@@ -39,8 +39,8 @@ async fn main() {
 
     println!("=================================================================");
     println!("Starting Axum Super forms Server.");
-    println!("Redis Status       : {}", if ping().await {"Connected"} else {"Unable to connect"});
-    println!("Postgres Status    : {}", if ping_db().await {"Connected"} else {"Unable to connect"});
+    println!("Redis Server Status       : {}", if ping().await {"Active"} else {"Unable to connect"});
+    println!("Postgres Server Status    : {}", if ping_db().await {"Active"} else {"Unable to connect"});
     
     let axum_router = Router::new()
         .merge(login_router())
@@ -52,7 +52,7 @@ async fn main() {
 }
 
 async fn serve(app: Router, port: u16) {
-    println!("Serving on address : http://127.0.0.1:{port}");
+    println!("Serving on address        : http://127.0.0.1:{port}");
     println!("=================================================================");
     let addr = SocketAddr::from((ADDR, port));
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
