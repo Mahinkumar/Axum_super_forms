@@ -1,1 +1,1 @@
-CREATE TABLE IF NOT EXISTS forms_user(userid INTEGER PRIMARY KEY,email VARCHAR,username TEXT,asskey VARCHAR);
+CREATE TABLE IF NOT EXISTS forms_user(userid INTEGER PRIMARY KEY,email VARCHAR,username TEXT,passkey VARCHAR);

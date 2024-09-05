@@ -3,7 +3,7 @@ use bb8_redis::bb8::Pool;
 use bb8_redis::RedisConnectionManager;
 //use bb8::{Pool, PooledConnection};
 
-use dotenv::dotenv;
+use dotenvy::dotenv;
 use redis::AsyncCommands;
 use std::env;
 
