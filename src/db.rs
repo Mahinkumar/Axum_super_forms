@@ -51,8 +51,6 @@ pub async fn setup_db() {
         .execute(&conn)
         .await
         .expect("Unable to create DEFAULT ADMIN in forms_user table");
-
-    
 }
 
 pub async fn ping_db() -> bool {
@@ -65,12 +63,18 @@ pub async fn ping_db() -> bool {
     row.0 == 150
 }
 
-pub async fn retrieve_admin(e_mail: String)-> Result<(i32,String,String),sqlx::Error>{
+pub async fn retrieve_admin(e_mail: String) -> Result<(i32, String, String), sqlx::Error> {
     let pool = get_db_conn_pool().await;
-    sqlx::query_as("SELECT aid,username,passhash FROM admins WHERE email=$1 ;").bind(e_mail).fetch_one(&pool).await
+    sqlx::query_as("SELECT aid,username,passhash FROM admins WHERE email=$1 ;")
+        .bind(e_mail)
+        .fetch_one(&pool)
+        .await
 }
 
-pub async fn retrieve_user(key: String)-> Result<(i32,String,String),sqlx::Error>{
+pub async fn retrieve_user(key: String) -> Result<(i32, String, String), sqlx::Error> {
     let pool = get_db_conn_pool().await;
-    sqlx::query_as("SELECT userid,username,email FROM forms_user WHERE passkey=$1 ;").bind(key).fetch_one(&pool).await
+    sqlx::query_as("SELECT userid,username,email FROM forms_user WHERE passkey=$1 ;")
+        .bind(key)
+        .fetch_one(&pool)
+        .await
 }

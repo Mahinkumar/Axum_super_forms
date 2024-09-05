@@ -1,24 +1,21 @@
 use askama_axum::IntoResponse;
 use axum::body::Body;
 use axum::http::Response;
-use axum::{response::Redirect, routing::post};
 use axum::Router;
+use axum::{response::Redirect, routing::post};
 use tower_cookies::{Cookie, CookieManagerLayer, Cookies};
 use tower_http::services::ServeFile;
 
 use crate::auth::{admin_login_handler, login_handler};
 
-
 //use tower_http::trace::TraceLayer;
 
 pub fn general_router() -> Router {
-    Router::new()
-        .route_service(
-            "/output.css",
-            ServeFile::new("./templates/assets/output.css"),
-        )
+    Router::new().route_service(
+        "/output.css",
+        ServeFile::new("./templates/assets/output.css"),
+    )
 }
-
 
 pub async fn to_login() -> Response<Body> {
     Redirect::to("/login").into_response()
@@ -35,10 +32,9 @@ pub fn login_router() -> Router {
         .layer(CookieManagerLayer::new())
 }
 
-pub async fn embed_token(token_name: String,token: String, cookie: Cookies) {
+pub async fn embed_token(token_name: String, token: String, cookie: Cookies) {
     let mut auth_cookie = Cookie::new(token_name, token);
     auth_cookie.set_http_only(true);
     auth_cookie.set_secure(true);
     cookie.add(auth_cookie)
 }
-

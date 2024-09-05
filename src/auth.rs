@@ -1,17 +1,18 @@
-use serde::Deserialize;
 use argon2::{
     password_hash::{PasswordHash, PasswordHasher, SaltString},
     Argon2, PasswordVerifier,
 };
-use rand::rngs::OsRng;
-use tower_cookies::Cookies;
+use axum::{http::Uri, response::IntoResponse};
 use axum::{response::Redirect, Form};
-use axum::{
-    http::Uri,
-    response::IntoResponse,
-};
+use rand::rngs::OsRng;
+use serde::Deserialize;
+use tower_cookies::Cookies;
 
-use crate::{db::{retrieve_admin, retrieve_user}, jwt_auth::JWToken, router::{embed_token, to_login}};
+use crate::{
+    db::{retrieve_admin, retrieve_user},
+    jwt_auth::JWToken,
+    router::{embed_token, to_login},
+};
 
 #[derive(Deserialize)]
 pub struct AdminLogin {
@@ -24,41 +25,58 @@ pub struct UserLogin {
     key: String,
 }
 
-pub async fn login_handler(cookie: Cookies, uri: Uri, Form(login): Form<UserLogin>) -> impl IntoResponse {
-    println!(
-        "Form from {} Posted {}.",
-        uri, login.key
-    );
+pub async fn login_handler(
+    cookie: Cookies,
+    uri: Uri,
+    Form(login): Form<UserLogin>,
+) -> impl IntoResponse {
+    println!("Form from {} Posted {}.", uri, login.key);
     let key_copy = login.key.clone();
     let user_data = match retrieve_user(login.key).await {
         Ok(c) => c,
-        Err(err) => {println!("Unable to retrieve admin: {err}"); return to_login().await},
+        Err(err) => {
+            println!("Unable to retrieve admin: {err}");
+            return to_login().await;
+        }
     };
 
     let token = JWToken::new(&user_data.1, &user_data.2, false, &key_copy).await;
-    embed_token("Access_token_user".to_string(),token.return_token().await, cookie).await;
+    embed_token(
+        "Access_token_user".to_string(),
+        token.return_token().await,
+        cookie,
+    )
+    .await;
     println!("Evaluated the user Login");
     Redirect::to("/").into_response()
 }
 
-pub async fn admin_login_handler(cookie: Cookies, uri: Uri, Form(login): Form<AdminLogin>) -> impl IntoResponse {
-    println!(
-        "Form posted from {} by {}.",
-        uri, &login.email
-    );
+pub async fn admin_login_handler(
+    cookie: Cookies,
+    uri: Uri,
+    Form(login): Form<AdminLogin>,
+) -> impl IntoResponse {
+    println!("Form posted from {} by {}.", uri, &login.email);
     let email_copy = login.email.clone();
     let admin_data = match retrieve_admin(login.email).await {
         Ok(c) => c,
-        Err(err) => {println!("Unable to retrieve admin: {err}"); return to_login().await},
+        Err(err) => {
+            println!("Unable to retrieve admin: {err}");
+            return to_login().await;
+        }
     };
 
-
-    if !verify_hash(&admin_data.2,&login.password).await {
+    if !verify_hash(&admin_data.2, &login.password).await {
         return to_login().await;
     }
 
     let token = JWToken::new(&email_copy, &admin_data.1, true, &admin_data.0.to_string()).await;
-    embed_token("Access_token_admin".to_string(),token.return_token().await, cookie).await;
+    embed_token(
+        "Access_token_admin".to_string(),
+        token.return_token().await,
+        cookie,
+    )
+    .await;
     println!("Evaluated the Admin Login");
     Redirect::to("/admin").into_response()
 }
@@ -73,7 +91,7 @@ pub async fn hash_password(password: &[u8]) -> String {
 }
 
 //pub async fn store_credentials(username: String,email: String,password: String){
-//    
+//
 //}
 
 pub async fn verify_hash(password_hash: &str, password: &str) -> bool {
@@ -83,4 +101,3 @@ pub async fn verify_hash(password_hash: &str, password: &str) -> bool {
         .verify_password(password.as_bytes(), &parsed_hash)
         .is_ok()
 }
-

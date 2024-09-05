@@ -1,8 +1,7 @@
+use crate::jwt_auth::verify_cookie;
 use askama_axum::{IntoResponse, Template};
 use axum::{body::Body, http::Response, response::Redirect, routing::get, Router};
 use tower_cookies::{CookieManagerLayer, Cookies};
-use crate::jwt_auth::verify_cookie;
-
 
 #[derive(Template)]
 #[template(path = "adminLogin.html")]
@@ -16,21 +15,17 @@ pub struct AdminTemplate<'a> {
     name: &'a str,
 }
 
-
 #[derive(Template)]
 #[template(path = "adminForm.html")]
 pub struct AdminFormTemplate<'a> {
     id: &'a str,
 }
 
-
 #[derive(Template)]
 #[template(path = "adminstat.html")]
 pub struct AdminStatTemplate<'a> {
     id: &'a str,
 }
-
-
 
 pub fn admin_router() -> Router {
     Router::new()
@@ -41,19 +36,23 @@ pub fn admin_router() -> Router {
 }
 
 pub async fn admin(cookies: Cookies) -> Response<Body> {
-    let cookie_ver = verify_cookie(&cookies,"Access_token_admin".to_string()).await;
-    if !cookie_ver.1{
-        return Redirect::to("/admin/login").into_response()
+    let cookie_ver = verify_cookie(&cookies, "Access_token_admin".to_string()).await;
+    if !cookie_ver.1 {
+        return Redirect::to("/admin/login").into_response();
     }
     let forms = AdminTemplate { name: "Hello" }; // instantiate your struct
     forms.into_response()
 }
 
-
 pub async fn admin_login(cookies: Cookies) -> Response<Body> {
-    if verify_cookie(&cookies,"Access_token_admin".to_string()).await.1{
-        return Redirect::to("/admin").into_response()
+    if verify_cookie(&cookies, "Access_token_admin".to_string())
+        .await
+        .1
+    {
+        return Redirect::to("/admin").into_response();
     }
-    let admin_login = AdminLoginTemplate { message: "Enter your credentials" }; // instantiate your struct
+    let admin_login = AdminLoginTemplate {
+        message: "Enter your credentials",
+    }; // instantiate your struct
     admin_login.into_response()
 }

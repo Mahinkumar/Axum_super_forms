@@ -2,20 +2,20 @@ use axum::Router;
 use db::setup_db;
 use std::net::SocketAddr;
 
-pub mod router;
-pub mod jwt_auth;
+pub mod admin;
 pub mod auth;
-pub mod mem_kv;
 pub mod client;
 pub mod db;
-pub mod admin;
+pub mod jwt_auth;
+pub mod mem_kv;
+pub mod router;
 
-use router::general_router;
-use router::login_router;
 use admin::admin_router;
 use client::client_router;
-use mem_kv::ping;
 use db::ping_db;
+use mem_kv::ping;
+use router::general_router;
+use router::login_router;
 
 //use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 //use tower_http::trace::TraceLayer;
@@ -25,9 +25,7 @@ const PORT_HOST: u16 = 8000;
 
 #[tokio::main]
 
-
 async fn main() {
-    
     // Use for Debug only!! Heavily reduces perfomance
     // tracing_subscriber::registry()
     //     .with(
@@ -40,9 +38,23 @@ async fn main() {
 
     println!("=================================================================");
     println!("Starting Axum Super forms Server.");
-    println!("Redis Server Status       : {}", if ping().await {"Active"} else {"Unable to connect"});
-    println!("Postgres Server Status    : {}", if ping_db().await {"Active"} else {"Unable to connect"});
-    
+    println!(
+        "Redis Server Status       : {}",
+        if ping().await {
+            "Active"
+        } else {
+            "Unable to connect"
+        }
+    );
+    println!(
+        "Postgres Server Status    : {}",
+        if ping_db().await {
+            "Active"
+        } else {
+            "Unable to connect"
+        }
+    );
+
     setup_db().await;
     let axum_router = Router::new()
         .merge(login_router())

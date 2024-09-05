@@ -146,12 +146,12 @@ impl JWToken {
             jwtoken.claims.is_admin,
         )
     }
-    pub async fn return_token(self)->String{
+    pub async fn return_token(self) -> String {
         self.token
     }
 }
 
-pub async fn verify_cookie(cookies: &Cookies,name: String) -> (bool, bool) {
+pub async fn verify_cookie(cookies: &Cookies, name: String) -> (bool, bool) {
     let cookie = cookies.get(&name);
     if cookie.is_none() {
         return (false, false);
