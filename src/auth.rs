@@ -49,7 +49,7 @@ pub async fn admin_login_handler(cookie: Cookies, uri: Uri, Form(login): Form<Ad
 
     let token = JWToken::new(&email_copy, &admin_data.1, true, &admin_data.0.to_string()).await;
     embed_token(token.return_token().await, cookie).await;
-    println!("Eavluated the Admin Login");
+    println!("Evaluated the Admin Login");
     Redirect::to("/admin").into_response()
 }
 

@@ -32,9 +32,10 @@ pub async fn setup_db() {
     )
     .await;
 
-    let admin_query = format!("INSERT INTO  admins(aid,email,username,passkey,passhash) VALUES(1,'{admin_email}','ADMIN','{admin_passkey}','{admin_hash}') ON CONFLICT DO NOTHING;");
-
-    sqlx::query(&admin_query)
+    sqlx::query("INSERT INTO  admins(aid,email,username,passkey,passhash) VALUES(0,$1,'ADMIN',$2,$3) ON CONFLICT DO NOTHING;")
+        .bind(admin_email)
+        .bind(admin_passkey)
+        .bind(admin_hash)
         .execute(&conn)
         .await
         .expect("Unable to create DEFAULT ADMIN");
@@ -57,6 +58,5 @@ pub async fn ping_db() -> bool {
 
 pub async fn retrieve_admin(e_mail: String)-> Result<(i32,String,String),sqlx::Error>{
     let pool = get_db_conn_pool().await;
-    let query = format!("SELECT aid,username,passhash FROM admins WHERE email='{e_mail}';");
-    sqlx::query_as(&query).fetch_one(&pool).await
+    sqlx::query_as("SELECT aid,username,passhash FROM admins WHERE email=$1").bind(e_mail).fetch_one(&pool).await
 }
