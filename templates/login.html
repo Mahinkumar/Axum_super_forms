@@ -13,8 +13,8 @@
             <h1 class="text-3xl font-bold w-full h-8">Axum Forms Login</h1>
             <h2 class="text-xl w-full h-8">{{message}}</h2>
           </div>
-          <form class="w-96 flex flex-col justify-around items-center space-y-4">
-            <input type="text" class="w-80 form-input block text-xl text-center tracking-[0.8em]" required maxlength="8" placeholder="________">
+          <form method="post" class="w-96 flex flex-col justify-around items-center space-y-4">
+            <input type="text" name="key" class="w-80 form-input block text-xl text-center tracking-[0.8em]" required maxlength="8" placeholder="________">
             <button type="submit" class="w-80 h-12 bg-black text-white">Submit</button>
           </form>
         </div>

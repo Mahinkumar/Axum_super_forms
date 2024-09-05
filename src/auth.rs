@@ -11,7 +11,7 @@ use axum::{
     response::IntoResponse,
 };
 
-use crate::{db::retrieve_admin, jwt_auth::JWToken, router::{embed_token, to_login}};
+use crate::{db::{retrieve_admin, retrieve_user}, jwt_auth::JWToken, router::{embed_token, to_login}};
 
 #[derive(Deserialize)]
 pub struct AdminLogin {
@@ -24,11 +24,21 @@ pub struct UserLogin {
     key: String,
 }
 
-pub async fn login_handler(_cookie: Cookies, uri: Uri, Form(login): Form<UserLogin>) -> impl IntoResponse {
+pub async fn login_handler(cookie: Cookies, uri: Uri, Form(login): Form<UserLogin>) -> impl IntoResponse {
     println!(
-        "Form from {} Posted {} and was verified",
+        "Form from {} Posted {}.",
         uri, login.key
     );
+    let key_copy = login.key.clone();
+    let user_data = match retrieve_user(login.key).await {
+        Ok(c) => c,
+        Err(err) => {println!("Unable to retrieve admin: {err}"); return to_login().await},
+    };
+
+    let token = JWToken::new(&user_data.1, &user_data.2, false, &key_copy).await;
+    embed_token("Access_token_user".to_string(),token.return_token().await, cookie).await;
+    println!("Evaluated the user Login");
+    Redirect::to("/").into_response()
 }
 
 pub async fn admin_login_handler(cookie: Cookies, uri: Uri, Form(login): Form<AdminLogin>) -> impl IntoResponse {
@@ -48,7 +58,7 @@ pub async fn admin_login_handler(cookie: Cookies, uri: Uri, Form(login): Form<Ad
     }
 
     let token = JWToken::new(&email_copy, &admin_data.1, true, &admin_data.0.to_string()).await;
-    embed_token(token.return_token().await, cookie).await;
+    embed_token("Access_token_admin".to_string(),token.return_token().await, cookie).await;
     println!("Evaluated the Admin Login");
     Redirect::to("/admin").into_response()
 }

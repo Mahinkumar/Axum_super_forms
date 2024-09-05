@@ -1,5 +1,5 @@
 use askama_axum::{IntoResponse, Template};
-use axum::{body::Body, http::Response, routing::get, Router};
+use axum::{body::Body, http::Response, response::Redirect, routing::get, Router};
 use tower_cookies::{CookieManagerLayer, Cookies};
 use crate::{jwt_auth::verify_cookie, router::to_login}; // bring trait in scope
                                      //use tower_http::cors::CorsLayer;
@@ -36,7 +36,8 @@ pub fn client_router() -> Router {
 }
 
 pub async fn home(cookies: Cookies) -> Response<Body> {
-    if verify_cookie(&cookies).await.0 {
+    let cookie_ver = verify_cookie(&cookies,"Access_token_user".to_string()).await;
+    if !cookie_ver.0 {
         return to_login().await;
     }
     let home = HelloTemplate { name: "world" }; // instantiate your struct
@@ -44,13 +45,18 @@ pub async fn home(cookies: Cookies) -> Response<Body> {
 }
 
 
-pub async fn login() -> Response<Body> {
+pub async fn login(cookies: Cookies) -> Response<Body> {
+    let cookie_ver = verify_cookie(&cookies,"Access_token_user".to_string()).await;
+    if cookie_ver.0 {
+        return Redirect::to("/").into_response();
+    }
     let login = LoginTemplate { message: "Enter you 8-character Secret key" }; // instantiate your struct
     login.into_response()
 }
 
 pub async fn forms(cookies: Cookies) -> Response<Body> {
-    if verify_cookie(&cookies).await.0 {
+    let cookie_ver = verify_cookie(&cookies,"Access_token_user".to_string()).await;
+    if !cookie_ver.0 {
         return to_login().await;
     }
     let forms = FormsTemplate { id: "12e4" }; // instantiate your struct

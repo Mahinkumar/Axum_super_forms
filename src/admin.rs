@@ -41,7 +41,7 @@ pub fn admin_router() -> Router {
 }
 
 pub async fn admin(cookies: Cookies) -> Response<Body> {
-    let cookie_ver = verify_cookie(&cookies).await;
+    let cookie_ver = verify_cookie(&cookies,"Access_token_admin".to_string()).await;
     if !cookie_ver.1{
         return Redirect::to("/admin/login").into_response()
     }
@@ -51,7 +51,7 @@ pub async fn admin(cookies: Cookies) -> Response<Body> {
 
 
 pub async fn admin_login(cookies: Cookies) -> Response<Body> {
-    if verify_cookie(&cookies).await.1{
+    if verify_cookie(&cookies,"Access_token_admin".to_string()).await.1{
         return Redirect::to("/admin").into_response()
     }
     let admin_login = AdminLoginTemplate { message: "Enter your credentials" }; // instantiate your struct

@@ -20,7 +20,7 @@ pub struct Claims {
     #[serde(with = "jwt_numeric_date")]
     exp: OffsetDateTime,
     is_admin: bool,
-    admin_id: String,
+    id: String,
 }
 
 mod jwt_numeric_date {
@@ -58,7 +58,7 @@ impl Claims {
         iat: OffsetDateTime,
         exp: OffsetDateTime,
         is_admin: bool,
-        admin_id: String,
+        id: String,
     ) -> Self {
         let iat = iat
             .date()
@@ -77,25 +77,24 @@ impl Claims {
             iat,
             exp,
             is_admin,
-            admin_id,
+            id,
         }
     }
 }
 
 impl JWToken {
-    pub async fn new(email: &str, username: &str, isadmin: bool, aid: &str) -> JWToken {
+    pub async fn new(email: &str, username: &str, isadmin: bool, id: &str) -> JWToken {
         dotenv().ok();
         let iat = OffsetDateTime::now_utc();
         let exp = iat + Duration::days(1);
 
-        // We only give is_admin as true here for testing purposes
         let claim = Claims::new(
             email.to_owned(),
             username.to_owned(),
             iat,
             exp,
             isadmin,
-            aid.to_string(),
+            id.to_string(),
         );
 
         let header = Header {
@@ -122,7 +121,7 @@ impl JWToken {
     pub async fn validate_token(token: String) -> (bool, bool) {
         let mut validation = Validation::new(Algorithm::HS512);
 
-        validation.set_required_spec_claims(&["exp", "iat", "user", "sub", "is_admin", "admin_id"]);
+        validation.set_required_spec_claims(&["exp", "iat", "user", "sub", "is_admin", "id"]);
         let jwtoken = match decode::<Claims>(
             &token,
             &DecodingKey::from_secret(
@@ -152,8 +151,8 @@ impl JWToken {
     }
 }
 
-pub async fn verify_cookie(cookies: &Cookies) -> (bool, bool) {
-    let cookie = cookies.get("access_token");
+pub async fn verify_cookie(cookies: &Cookies,name: String) -> (bool, bool) {
+    let cookie = cookies.get(&name);
     if cookie.is_none() {
         return (false, false);
     } else {

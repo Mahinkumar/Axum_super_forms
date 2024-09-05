@@ -35,8 +35,8 @@ pub fn login_router() -> Router {
         .layer(CookieManagerLayer::new())
 }
 
-pub async fn embed_token(token: String, cookie: Cookies) {
-    let mut auth_cookie = Cookie::new("access_token", token);
+pub async fn embed_token(token_name: String,token: String, cookie: Cookies) {
+    let mut auth_cookie = Cookie::new(token_name, token);
     auth_cookie.set_http_only(true);
     auth_cookie.set_secure(true);
     cookie.add(auth_cookie)
