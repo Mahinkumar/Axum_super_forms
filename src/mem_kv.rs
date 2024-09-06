@@ -7,6 +7,8 @@ use bb8_redis::RedisConnectionManager;
 use dotenvy::dotenv;
 use std::env;
 
+use crate::db::User;
+
 pub async fn get_redis_pool() -> Pool<RedisConnectionManager> {
     dotenv().ok();
     let manager = RedisConnectionManager::new(
@@ -25,4 +27,11 @@ pub async fn ping() -> bool {
         .await
         .unwrap();
     conn.get::<&str, String>("Check").await.unwrap() == "Response recieved!".to_string()
+}
+
+pub async fn get_key_user(key: String)->User{
+    let redis_pool = get_redis_pool().await;
+    let mut redis_conn = redis_pool.get().await.unwrap();
+    let value = redis_conn.get::<&str, User>(&key).await.unwrap();
+    value
 }

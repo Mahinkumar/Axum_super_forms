@@ -1,6 +1,7 @@
 use axum::Router;
 use db::redis_copy;
 use db::setup_db;
+use mem_kv::get_key;
 use std::net::SocketAddr;
 
 pub mod admin;

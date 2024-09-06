@@ -24,6 +24,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e89da841a80418a9b391ebaea17f5c112ffaaa96f621d2c285b5174da76b9011"
 dependencies = [
  "cfg-if",
+ "getrandom",
  "once_cell",
  "version_check",
  "zerocopy",
@@ -403,13 +404,13 @@ dependencies = [
 
 [[package]]
 name = "bb8-redis"
-version = "0.14.0"
+version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4094bc17b933090cfded54315a86db01d67ec999583d4bab894c520f8c097d1f"
+checksum = "0c6910977c026bb1d0a6b523508d1a893d6d4c2ba216355e9569d8181d92ccbe"
 dependencies = [
  "async-trait",
  "bb8 0.8.5",
- "redis 0.24.0",
+ "redis 0.26.1",
 ]
 
 [[package]]
@@ -1869,6 +1870,7 @@ version = "0.24.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c580d9cbbe1d1b479e8d67cf9daf6a62c957e6846048408b80b43ac3f6af84cd"
 dependencies = [
+ "ahash",
  "async-trait",
  "bytes",
  "combine",
@@ -1891,13 +1893,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e902a69d09078829137b4a5d9d082e0490393537badd7c91a3d69d14639e115f"
 dependencies = [
  "arc-swap",
+ "async-trait",
+ "bytes",
  "combine",
+ "futures-util",
  "itoa",
  "num-bigint 0.4.6",
  "percent-encoding",
+ "pin-project-lite",
  "ryu",
  "sha1_smol",
  "socket2 0.5.7",
+ "tokio",
+ "tokio-util",
  "url",
 ]
 

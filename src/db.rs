@@ -1,13 +1,15 @@
 use crate::{auth::hash_password, mem_kv::get_redis_pool};
-use bb8_redis::redis::AsyncCommands;
+use redis::AsyncCommands;
+use bb8_redis::redis;
 use dotenvy::dotenv;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use sqlx::{postgres::PgPoolOptions, Postgres};
 use std::env;
-use redis_macros::ToRedisArgs;
+use redis_macros::{FromRedisValue, ToRedisArgs};
 
 //userid,email,username,passkey
 #[derive(Debug)]
+#[derive(Deserialize, FromRedisValue)]
 #[derive(Serialize, ToRedisArgs)]
 pub struct User {
     userid: i32,
@@ -106,3 +108,4 @@ pub async fn redis_copy(){
     }
     println!("Loaded {count} entries into Memory.");
 }
+
