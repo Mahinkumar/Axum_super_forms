@@ -44,7 +44,10 @@ pub async fn admin(cookies: Cookies) -> Response<Body> {
     forms.into_response()
 }
 
-pub async fn admin_login(cookies: Cookies) -> Response<Body> {
+pub async fn admin_login(cookies: Cookies,mut message: String) -> Response<Body> {
+    if message.is_empty(){
+        message = "Enter your credentials".to_string();
+    }
     if verify_cookie(&cookies, "Access_token_admin".to_string())
         .await
         .1
@@ -52,7 +55,7 @@ pub async fn admin_login(cookies: Cookies) -> Response<Body> {
         return Redirect::to("/admin").into_response();
     }
     let admin_login = AdminLoginTemplate {
-        message: "Enter your credentials",
+        message: &message,
     }; // instantiate your struct
     admin_login.into_response()
 }

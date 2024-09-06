@@ -42,13 +42,16 @@ pub async fn home(cookies: Cookies) -> Response<Body> {
     home.into_response()
 }
 
-pub async fn login(cookies: Cookies) -> Response<Body> {
+pub async fn login(cookies: Cookies,mut message: String) -> Response<Body> {
+    if message.is_empty(){
+        message = "Enter your 8 digit key".to_string();
+    }
     let cookie_ver = verify_cookie(&cookies, "Access_token_user".to_string()).await;
     if cookie_ver.0 {
         return Redirect::to("/").into_response();
     }
     let login = LoginTemplate {
-        message: "Enter you 8-character Secret key",
+        message: &message,
     }; // instantiate your struct
     login.into_response()
 }

@@ -9,9 +9,7 @@ use serde::Deserialize;
 use tower_cookies::Cookies;
 
 use crate::{
-    db::{retrieve_admin, retrieve_user},
-    jwt_auth::JWToken,
-    router::{embed_token, to_login},
+    admin::admin_login, client::login, db::{retrieve_admin, retrieve_user}, jwt_auth::JWToken, router::{embed_token, to_login}
 };
 
 #[derive(Deserialize)]
@@ -28,15 +26,15 @@ pub struct UserLogin {
 pub async fn login_handler(
     cookie: Cookies,
     uri: Uri,
-    Form(login): Form<UserLogin>,
+    Form(logins): Form<UserLogin>,
 ) -> impl IntoResponse {
-    println!("Form from {} Posted {}.", uri, login.key);
-    let key_copy = login.key.clone();
-    let user_data = match retrieve_user(login.key).await {
+    println!("Form from {} Posted {}.", uri, logins.key);
+    let key_copy = logins.key.clone();
+    let user_data = match retrieve_user(logins.key).await {
         Ok(c) => c,
         Err(err) => {
-            println!("Unable to retrieve admin: {err}");
-            return to_login().await;
+            println!("Unable to retrieve User: {err}");
+            return login(cookie, "Invalid key".to_string()).await;
         }
     };
 
@@ -62,7 +60,7 @@ pub async fn admin_login_handler(
         Ok(c) => c,
         Err(err) => {
             println!("Unable to retrieve admin: {err}");
-            return to_login().await;
+            return admin_login(cookie,"Invalid credentials".to_string()).await;
         }
     };
 
