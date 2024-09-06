@@ -5,7 +5,8 @@ use std::env;
 use time::{Duration, OffsetDateTime};
 use tower_cookies::Cookies;
 //use jsonwebtoken::errors::ErrorKind;
-
+//1600000
+#[allow(unused)]
 pub struct JWToken {
     claim: Claims,
     token: String,

@@ -1,6 +1,6 @@
-use crate::{auth::hash_password, mem_kv::get_redis_pool};
+use crate::auth::hash_password;
 use redis::AsyncCommands;
-use bb8_redis::redis;
+use bb8_redis::{bb8::Pool, redis, RedisConnectionManager};
 use dotenvy::dotenv;
 use serde::{Deserialize, Serialize};
 use sqlx::{postgres::PgPoolOptions, Postgres};
@@ -12,10 +12,10 @@ use redis_macros::{FromRedisValue, ToRedisArgs};
 #[derive(Deserialize, FromRedisValue)]
 #[derive(Serialize, ToRedisArgs)]
 pub struct User {
-    userid: i32,
-    email: String,
-    username: String,
-    passkey: String,
+    pub userid: i32,
+    pub email: String,
+    pub username: String,
+    pub passkey: String,
 }
 
 pub async fn get_db_conn_pool() -> sqlx::Pool<Postgres> {
@@ -27,16 +27,15 @@ pub async fn get_db_conn_pool() -> sqlx::Pool<Postgres> {
         .expect("Unable to create a connection pool")
 }
 
-pub async fn setup_db() {
-    let conn = get_db_conn_pool().await;
+pub async fn setup_db(conn: &sqlx::Pool<Postgres>) {
 
     sqlx::query_file!("sql/setup_admin.sql")
-        .execute(&conn)
+        .execute(conn)
         .await
         .expect("Unable to setup Admin Table!");
 
     sqlx::query_file!("sql/setup_user.sql")
-        .execute(&conn)
+        .execute(conn)
         .await
         .expect("Unable to setup User Table!");
 
@@ -56,49 +55,44 @@ pub async fn setup_db() {
     sqlx::query("INSERT INTO admins(aid,email,username,passhash) VALUES(0,$1,'ADMIN',$2) ON CONFLICT DO NOTHING;")
         .bind(admin_email)
         .bind(admin_hash)
-        .execute(&conn)
+        .execute(conn)
         .await
         .expect("Unable to create DEFAULT ADMIN in admins table");
 
     sqlx::query("INSERT INTO forms_user(userid,email,username,passkey) VALUES(0,$1,'ADMIN',$2) ON CONFLICT DO NOTHING;")
         .bind(admin_email)
         .bind(admin_passkey)
-        .execute(&conn)
+        .execute(conn)
         .await
         .expect("Unable to create DEFAULT ADMIN in forms_user table");
 }
 
-pub async fn ping_db() -> bool {
-    let pool = get_db_conn_pool().await;
+pub async fn ping_db(conn: &sqlx::Pool<Postgres>) -> bool {
     let row: (i64,) = sqlx::query_as("SELECT $1;")
         .bind(150_i64)
-        .fetch_one(&pool)
+        .fetch_one(conn)
         .await
         .expect("Unable to make test query");
     row.0 == 150
 }
 
-pub async fn retrieve_admin(e_mail: String) -> Result<(i32, String, String), sqlx::Error> {
-    let pool = get_db_conn_pool().await;
+pub async fn retrieve_admin(conn: sqlx::Pool<Postgres>,e_mail: String) -> Result<(i32, String, String), sqlx::Error> {
     sqlx::query_as("SELECT aid,username,passhash FROM admins WHERE email=$1 ;")
         .bind(e_mail)
-        .fetch_one(&pool)
+        .fetch_one(&conn)
         .await
 }
 
-pub async fn retrieve_user(key: String) -> Result<(i32, String, String), sqlx::Error> {
-    let pool = get_db_conn_pool().await;
+pub async fn retrieve_user(conn: &sqlx::Pool<Postgres>,key: String) -> Result<(i32, String, String), sqlx::Error> {
     sqlx::query_as("SELECT userid,username,email FROM forms_user WHERE passkey=$1 ;")
         .bind(key)
-        .fetch_one(&pool)
+        .fetch_one(conn)
         .await
 }
 
-pub async fn redis_copy(){
-    let db_pool = get_db_conn_pool().await;
-    let redis_pool = get_redis_pool().await;
+pub async fn redis_copy(conn: &sqlx::Pool<Postgres>,redis_pool: &Pool<RedisConnectionManager>){
     let mut redis_conn = redis_pool.get().await.unwrap();
-    let all_kv: Vec<(i32,String, String, String)> =  sqlx::query_as("SELECT * FROM forms_user;").fetch_all(&db_pool).await.expect("Unable to fetch from Database");
+    let all_kv: Vec<(i32,String, String, String)> =  sqlx::query_as("SELECT * FROM forms_user;").fetch_all(conn).await.expect("Unable to fetch from Database");
     print!("Setting up Redis          : ");
     let mut count = 0;
     for i in all_kv{

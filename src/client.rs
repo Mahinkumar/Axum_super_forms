@@ -1,4 +1,4 @@
-use crate::{jwt_auth::verify_cookie, router::to_login};
+use crate::{jwt_auth::verify_cookie, router::to_login, DbPools};
 use askama_axum::{IntoResponse, Template};
 use axum::{body::Body, http::Response, response::Redirect, routing::get, Router};
 use tower_cookies::{CookieManagerLayer, Cookies}; // bring trait in scope
@@ -24,7 +24,7 @@ pub struct FormsTemplate<'a> {
     id: &'a str,
 }
 
-pub fn client_router() -> Router {
+pub fn client_router() -> Router<DbPools> {
     Router::new()
         .route("/", get(home))
         .route("/login", get(login))

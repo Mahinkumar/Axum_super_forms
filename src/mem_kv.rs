@@ -20,18 +20,16 @@ pub async fn get_redis_pool() -> Pool<RedisConnectionManager> {
     pool
 }
 
-pub async fn ping() -> bool {
-    let pool = get_redis_pool().await;
-    let mut conn = pool.get().await.unwrap();
+pub async fn ping(conn_pool: &Pool<RedisConnectionManager>) -> bool {
+    let mut conn = conn_pool.get().await.unwrap();
     conn.set::<&str, &str, ()>("Check", "Response recieved!")
         .await
         .unwrap();
     conn.get::<&str, String>("Check").await.unwrap() == "Response recieved!".to_string()
 }
 
-pub async fn get_key_user(key: String)->User{
-    let redis_pool = get_redis_pool().await;
-    let mut redis_conn = redis_pool.get().await.unwrap();
-    let value = redis_conn.get::<&str, User>(&key).await.unwrap();
+pub async fn retrieve_user_redis(key: String,conn_pool: &Pool<RedisConnectionManager>)->Result<User, bb8_redis::redis::RedisError>{
+    let mut redis_conn = conn_pool.get().await.unwrap();
+    let value = redis_conn.get::<&str, User>(&key).await;
     value
 }

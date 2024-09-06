@@ -1,4 +1,4 @@
-use crate::jwt_auth::verify_cookie;
+use crate::{jwt_auth::verify_cookie, DbPools};
 use askama_axum::{IntoResponse, Template};
 use axum::{body::Body, http::Response, response::Redirect, routing::get, Router};
 use tower_cookies::{CookieManagerLayer, Cookies};
@@ -27,7 +27,7 @@ pub struct AdminStatTemplate<'a> {
     id: &'a str,
 }
 
-pub fn admin_router() -> Router {
+pub fn admin_router() -> Router<DbPools> {
     Router::new()
         .route("/admin", get(admin))
         .route("/admin/login", get(admin_login))

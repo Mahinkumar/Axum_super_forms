@@ -1,6 +1,11 @@
 use axum::Router;
+use bb8_redis::bb8::Pool;
+use bb8_redis::RedisConnectionManager;
+use db::get_db_conn_pool;
 use db::redis_copy;
 use db::setup_db;
+use mem_kv::get_redis_pool;
+use sqlx::Postgres;
 use std::net::SocketAddr;
 
 pub mod admin;
@@ -20,6 +25,11 @@ use router::login_router;
 
 //use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 //use tower_http::trace::TraceLayer;
+#[derive(Clone)]
+pub struct DbPools{
+    pub postgres_pool: sqlx::Pool<Postgres>,
+    pub redis_pool: Pool<RedisConnectionManager>,
+}
 
 const ADDR: [u8; 4] = [127, 0, 0, 1];
 const PORT_HOST: u16 = 8000;
@@ -37,11 +47,20 @@ async fn main() {
     //     .with(tracing_subscriber::fmt::layer())
     //     .init();
 
+    let redis_pool = get_redis_pool().await;
+    let postgres_pool = get_db_conn_pool().await;
+
+    let database_pools = DbPools{
+        postgres_pool: postgres_pool.clone(),
+        redis_pool: redis_pool.clone()
+    };
+
+    
     println!("=================================================================");
     println!("Starting Axum Super forms Server.");
     println!(
         "Redis Server Status       : {}",
-        if ping().await {
+        if ping(&redis_pool).await {
             "Active"
         } else {
             "Unable to connect"
@@ -49,22 +68,22 @@ async fn main() {
     );
     println!(
         "Postgres Server Status    : {}",
-        if ping_db().await {
+        if ping_db(&postgres_pool).await {
             "Active"
         } else {
             "Unable to connect"
         }
     );
 
-    setup_db().await;
-    redis_copy().await;
+    setup_db(&postgres_pool).await;
+    redis_copy(&postgres_pool,&redis_pool).await;
     let axum_router = Router::new()
         .merge(login_router())
         .merge(admin_router())
         .merge(general_router())
         .merge(client_router());
 
-    tokio::join!(serve(axum_router, PORT_HOST));
+    tokio::join!(serve(axum_router.with_state(database_pools), PORT_HOST));
 }
 
 async fn serve(app: Router, port: u16) {

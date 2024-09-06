@@ -2,14 +2,14 @@ use argon2::{
     password_hash::{PasswordHash, PasswordHasher, SaltString},
     Argon2, PasswordVerifier,
 };
-use axum::{http::Uri, response::IntoResponse};
+use axum::{extract::State, http::Uri, response::IntoResponse};
 use axum::{response::Redirect, Form};
 use rand::rngs::OsRng;
 use serde::Deserialize;
 use tower_cookies::Cookies;
 
 use crate::{
-    admin::admin_login, client::login, db::{retrieve_admin, retrieve_user}, jwt_auth::JWToken, router::{embed_token, to_login}
+    admin::admin_login, client::login, db::retrieve_admin, jwt_auth::JWToken, mem_kv::retrieve_user_redis, router::{embed_token, to_login}, DbPools
 };
 
 #[derive(Deserialize)]
@@ -23,22 +23,21 @@ pub struct UserLogin {
     key: String,
 }
 
-pub async fn login_handler(
+pub async fn login_handler( State(db_pools): State<DbPools>,
     cookie: Cookies,
     uri: Uri,
     Form(logins): Form<UserLogin>,
 ) -> impl IntoResponse {
     println!("Form from {} Posted {}.", uri, logins.key);
-    let key_copy = logins.key.clone();
-    let user_data = match retrieve_user(logins.key).await {
+    let user_data = match retrieve_user_redis(logins.key,&db_pools.redis_pool).await {
         Ok(c) => c,
         Err(err) => {
-            println!("Unable to retrieve User: {err}");
+            println!("Unable to retrieve User in redis: {err}");
             return login(cookie, "Invalid key".to_string()).await;
         }
     };
 
-    let token = JWToken::new(&user_data.1, &user_data.2, false, &key_copy).await;
+    let token = JWToken::new(&user_data.email, &user_data.username, false, &user_data.userid.to_string()).await;
     embed_token(
         "Access_token_user".to_string(),
         token.return_token().await,
@@ -46,17 +45,19 @@ pub async fn login_handler(
     )
     .await;
     println!("Evaluated the user Login");
+    
     Redirect::to("/").into_response()
 }
 
 pub async fn admin_login_handler(
+    State(db_pools): State<DbPools>,
     cookie: Cookies,
     uri: Uri,
     Form(login): Form<AdminLogin>,
 ) -> impl IntoResponse {
     println!("Form posted from {} by {}.", uri, &login.email);
     let email_copy = login.email.clone();
-    let admin_data = match retrieve_admin(login.email).await {
+    let admin_data = match retrieve_admin(db_pools.postgres_pool,login.email).await {
         Ok(c) => c,
         Err(err) => {
             println!("Unable to retrieve admin: {err}");
