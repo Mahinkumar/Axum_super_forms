@@ -1,16 +1,14 @@
 use crate::auth::hash_password;
-use redis::AsyncCommands;
 use bb8_redis::{bb8::Pool, redis, RedisConnectionManager};
 use dotenvy::dotenv;
+use redis::AsyncCommands;
+use redis_macros::{FromRedisValue, ToRedisArgs};
 use serde::{Deserialize, Serialize};
 use sqlx::{postgres::PgPoolOptions, Postgres};
 use std::env;
-use redis_macros::{FromRedisValue, ToRedisArgs};
 
 //userid,email,username,passkey
-#[derive(Debug)]
-#[derive(Deserialize, FromRedisValue)]
-#[derive(Serialize, ToRedisArgs)]
+#[derive(Debug, Deserialize, FromRedisValue, Serialize, ToRedisArgs)]
 pub struct User {
     pub userid: i32,
     pub email: String,
@@ -28,7 +26,6 @@ pub async fn get_db_conn_pool() -> sqlx::Pool<Postgres> {
 }
 
 pub async fn setup_db(conn: &sqlx::Pool<Postgres>) {
-
     sqlx::query_file!("sql/setup_admin.sql")
         .execute(conn)
         .await
@@ -76,30 +73,46 @@ pub async fn ping_db(conn: &sqlx::Pool<Postgres>) -> bool {
     row.0 == 150
 }
 
-pub async fn retrieve_admin(conn: sqlx::Pool<Postgres>,e_mail: String) -> Result<(i32, String, String), sqlx::Error> {
+pub async fn retrieve_admin(
+    conn: sqlx::Pool<Postgres>,
+    e_mail: String,
+) -> Result<(i32, String, String), sqlx::Error> {
     sqlx::query_as("SELECT aid,username,passhash FROM admins WHERE email=$1 ;")
         .bind(e_mail)
         .fetch_one(&conn)
         .await
 }
 
-pub async fn retrieve_user(conn: &sqlx::Pool<Postgres>,key: String) -> Result<(i32, String, String), sqlx::Error> {
+pub async fn retrieve_user(
+    conn: &sqlx::Pool<Postgres>,
+    key: String,
+) -> Result<(i32, String, String), sqlx::Error> {
     sqlx::query_as("SELECT userid,username,email FROM forms_user WHERE passkey=$1 ;")
         .bind(key)
         .fetch_one(conn)
         .await
 }
 
-pub async fn redis_copy(conn: &sqlx::Pool<Postgres>,redis_pool: &Pool<RedisConnectionManager>){
+pub async fn redis_copy(conn: &sqlx::Pool<Postgres>, redis_pool: &Pool<RedisConnectionManager>) {
     let mut redis_conn = redis_pool.get().await.unwrap();
-    let all_kv: Vec<(i32,String, String, String)> =  sqlx::query_as("SELECT * FROM forms_user;").fetch_all(conn).await.expect("Unable to fetch from Database");
+    let all_kv: Vec<(i32, String, String, String)> = sqlx::query_as("SELECT * FROM forms_user;")
+        .fetch_all(conn)
+        .await
+        .expect("Unable to fetch from Database");
     print!("Setting up Redis          : ");
     let mut count = 0;
-    for i in all_kv{
+    for i in all_kv {
         count += 1;
-        let j = User {email: i.1, username:i.2, passkey:i.3.clone(), userid:i.0};
-        redis_conn.set::<&str,&User, ()>(&i.3,&j).await.expect("Unable to load db into memory");
+        let j = User {
+            email: i.1,
+            username: i.2,
+            passkey: i.3.clone(),
+            userid: i.0,
+        };
+        redis_conn
+            .set::<&str, &User, ()>(&i.3, &j)
+            .await
+            .expect("Unable to load db into memory");
     }
     println!("Loaded {count} entries into Memory.");
 }
-

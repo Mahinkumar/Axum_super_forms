@@ -26,7 +26,7 @@ use router::login_router;
 //use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 //use tower_http::trace::TraceLayer;
 #[derive(Clone)]
-pub struct DbPools{
+pub struct DbPools {
     pub postgres_pool: sqlx::Pool<Postgres>,
     pub redis_pool: Pool<RedisConnectionManager>,
 }
@@ -50,12 +50,11 @@ async fn main() {
     let redis_pool = get_redis_pool().await;
     let postgres_pool = get_db_conn_pool().await;
 
-    let database_pools = DbPools{
+    let database_pools = DbPools {
         postgres_pool: postgres_pool.clone(),
-        redis_pool: redis_pool.clone()
+        redis_pool: redis_pool.clone(),
     };
 
-    
     println!("=================================================================");
     println!("Starting Axum Super forms Server.");
     println!(
@@ -76,7 +75,7 @@ async fn main() {
     );
 
     setup_db(&postgres_pool).await;
-    redis_copy(&postgres_pool,&redis_pool).await;
+    redis_copy(&postgres_pool, &redis_pool).await;
     let axum_router = Router::new()
         .merge(login_router())
         .merge(admin_router())
