@@ -36,6 +36,11 @@ pub async fn setup_db(conn: &sqlx::Pool<Postgres>) {
         .await
         .expect("Unable to setup User Table!");
 
+    sqlx::query_file!("sql/setup_forms.sql")
+        .execute(conn)
+        .await
+        .expect("Unable to setup Forms Table!");
+
     let admin_email =
         &env::var("DEFAULT_ADMIN_MAIL").expect("env variable DEFAULT_ADMIN_MAIL must be set!");
 
@@ -62,6 +67,11 @@ pub async fn setup_db(conn: &sqlx::Pool<Postgres>) {
         .execute(conn)
         .await
         .expect("Unable to create DEFAULT ADMIN in forms_user table");
+
+    sqlx::query("INSERT INTO forms(elid,fid,typ,gid,req) VALUES(0,0,'text',0,true),(1,0,'email',0,true) ON CONFLICT DO NOTHING;")
+        .execute(conn)
+        .await
+        .expect("Unable to create DEFAULT form in forms table");
 }
 
 pub async fn ping_db(conn: &sqlx::Pool<Postgres>) -> bool {
