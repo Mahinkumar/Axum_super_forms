@@ -5,9 +5,18 @@
 
 
 {% block content %}
-    <section class="bg-gray-100 text-gray-700 p-8">
-        <p class="mt-4">This is a test Home page</p>
-        <p class="mt-4">Hello {{name}}.</p>
+    <section class="p-12 w-screen min-h-screen">
+        <p class="text-4xl font-bold pb-4">Good Morning, </p>
+        <p class="text-4xl font-bold pb-4">{{name}} </p>
+        <div class="bg-slate-100 p-6 rounded-md mt-4 mb-4">
+        <div class="grid grid-cols-4 place-content-evenly pt-2 gap-12">
+          <div class="h-56 w-72 bg-stone-300 rounded-lg"></div>
+          <div class="h-56 w-72 bg-stone-300 rounded-lg"></div>
+          <div class="h-56 w-72 bg-stone-300 rounded-lg"></div>
+          <div class="h-56 w-72 bg-stone-300 rounded-lg"></div>
+          <div class="h-56 w-72 bg-stone-300 rounded-lg"></div>
+        </div>
+      </div>
     </section>
   {% call super() %}
 {% endblock %}

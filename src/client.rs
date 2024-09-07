@@ -5,7 +5,7 @@ use tower_cookies::{CookieManagerLayer, Cookies};
 
 #[derive(Template)] // this will generate the code...
 #[template(path = "home.html")]
-pub struct HelloTemplate<'a> {
+pub struct HomeTemplate<'a> {
     // the name of the struct can be anything
     name: &'a str, // the field name should match the variable name
                    // in your template
@@ -53,7 +53,7 @@ pub async fn home(cookies: Cookies) -> Response<Body> {
     if !cookie_ver.0 {
         return to_login().await;
     }
-    let home = HelloTemplate { name: "world" }; // instantiate your struct
+    let home = HomeTemplate { name: "User" }; // instantiate your struct
     home.into_response()
 }
 

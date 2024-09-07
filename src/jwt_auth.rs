@@ -150,6 +150,11 @@ impl JWToken {
     pub async fn return_token(self) -> String {
         self.token
     }
+    
+    pub async fn get_name(self) -> String {
+        self.claim.user
+    }
+    
 }
 
 pub async fn verify_cookie(cookies: &Cookies, name: String) -> (bool, bool) {
