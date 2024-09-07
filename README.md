@@ -14,5 +14,7 @@ A Self hostable, blazingly fast forms solution built with Rust with a focus on s
 5. Form history and record support for users and admin
 
 
+## Architecture
+<img width="700" alt="AxumSuperFormsArchq" src="https://github.com/user-attachments/assets/f2026e3c-75e4-42cf-adf9-7faadc9d17a0">
 
  
