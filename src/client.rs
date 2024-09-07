@@ -17,11 +17,6 @@ pub struct LoginTemplate<'a> {
     message: &'a str,
 }
 
-#[derive(Template)]
-#[template(path = "form.html")]
-pub struct FormsTemplate<'a> {
-    id: &'a str,
-}
 
 #[derive(Template)]
 #[template(path = "404.html")]
@@ -33,7 +28,6 @@ pub fn client_router() -> Router<DbPools> {
     Router::new()
         .route("/", get(home))
         .route("/login", get(login))
-        .route("/forms", get(forms))
         .merge(route404())
         .layer(CookieManagerLayer::new())
     //  .layer(TraceLayer::new_for_http()) // For Debug only
@@ -69,11 +63,3 @@ pub async fn login(cookies: Cookies, mut message: String) -> Response<Body> {
     login.into_response()
 }
 
-pub async fn forms(cookies: Cookies) -> Response<Body> {
-    let cookie_ver = verify_cookie(&cookies, "Access_token_user".to_string()).await;
-    if !cookie_ver.0 {
-        return to_login().await;
-    }
-    let forms = FormsTemplate { id: "12e4" }; // instantiate your struct
-    forms.into_response()
-}

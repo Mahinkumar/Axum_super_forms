@@ -140,8 +140,6 @@ impl JWToken {
                 }
             },
         };
-        //println!("{:?}",token.header);
-        //println!("{:?}",token.claims);
         (
             jwtoken.header.kid.expect("Unable to verify Key used") == "EnvKey",
             jwtoken.claims.is_admin,
@@ -150,9 +148,28 @@ impl JWToken {
     pub async fn return_token(self) -> String {
         self.token
     }
-    
-    pub async fn get_name(self) -> String {
+
+    pub async fn get_claims(self) -> String {
         self.claim.user
+    }
+
+    pub async fn get_from_cookie(cookies: &Cookies,name: String)->Claims{
+        let cookie = cookies.get(&name);
+        let unpacked_cookie = cookie.expect("Unable to read cookie");
+        let mut validation = Validation::new(Algorithm::HS512);
+
+        validation.set_required_spec_claims(&["exp", "iat", "user", "sub", "is_admin", "id"]);
+        let jwtoken = decode::<Claims>(
+            &unpacked_cookie.value(),
+            &DecodingKey::from_secret(
+                env::var("KEY")
+                    .expect("env variable KEY must be set!")
+                    .as_bytes(),
+            ),
+            &validation,
+        ).expect("Unable to decode cookie");
+        let claims = jwtoken;
+        claims.claims
     }
     
 }

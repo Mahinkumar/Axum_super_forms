@@ -4,6 +4,7 @@ use bb8_redis::RedisConnectionManager;
 use db::get_db_conn_pool;
 use db::redis_copy;
 use db::setup_db;
+use forms::form_router;
 use mem_kv::get_redis_pool;
 use sqlx::Postgres;
 use std::net::SocketAddr;
@@ -15,6 +16,7 @@ pub mod db;
 pub mod jwt_auth;
 pub mod mem_kv;
 pub mod router;
+pub mod forms;
 
 use admin::admin_router;
 use client::client_router;
@@ -80,7 +82,8 @@ async fn main() {
         .merge(login_router())
         .merge(admin_router())
         .merge(general_router())
-        .merge(client_router());
+        .merge(client_router())
+        .merge(form_router());
 
     tokio::join!(serve(axum_router.with_state(database_pools), PORT_HOST));
 }
