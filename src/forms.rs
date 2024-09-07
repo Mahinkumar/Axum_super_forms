@@ -1,19 +1,16 @@
-
-
 use askama::Template;
 use askama_axum::IntoResponse;
 //To do: Generate forms here based on formid given by the user.
 //Route based on form id
+use crate::{jwt_auth::verify_cookie, router::to_login, DbPools};
 use axum::{body::Body, http::Response, routing::get, Router};
 use tower_cookies::{CookieManagerLayer, Cookies};
-use crate::{jwt_auth::verify_cookie, router::to_login, DbPools};
 
 #[derive(Template)]
 #[template(path = "form.html")]
 pub struct FormsTemplate<'a> {
     id: &'a str,
 }
-
 
 pub fn form_router() -> Router<DbPools> {
     Router::new()
@@ -24,7 +21,7 @@ pub fn form_router() -> Router<DbPools> {
 
 pub async fn forms(cookies: Cookies) -> Response<Body> {
     let cookie_ver = verify_cookie(&cookies, "Access_token_user".to_string()).await;
-    if !cookie_ver.0 {
+    if !cookie_ver.is_user {
         return to_login().await;
     }
     let forms = FormsTemplate { id: "12e4" }; // instantiate your struct

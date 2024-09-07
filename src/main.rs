@@ -13,10 +13,10 @@ pub mod admin;
 pub mod auth;
 pub mod client;
 pub mod db;
+pub mod forms;
 pub mod jwt_auth;
 pub mod mem_kv;
 pub mod router;
-pub mod forms;
 
 use admin::admin_router;
 use client::client_router;

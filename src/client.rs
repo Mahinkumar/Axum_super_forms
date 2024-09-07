@@ -17,7 +17,6 @@ pub struct LoginTemplate<'a> {
     message: &'a str,
 }
 
-
 #[derive(Template)]
 #[template(path = "404.html")]
 pub struct Page404Template<'a> {
@@ -44,7 +43,7 @@ pub async fn handle_404() -> Response<Body> {
 
 pub async fn home(cookies: Cookies) -> Response<Body> {
     let cookie_ver = verify_cookie(&cookies, "Access_token_user".to_string()).await;
-    if !cookie_ver.0 {
+    if !cookie_ver.is_user {
         return to_login().await;
     }
     let home = HomeTemplate { name: "User" }; // instantiate your struct
@@ -56,10 +55,9 @@ pub async fn login(cookies: Cookies, mut message: String) -> Response<Body> {
         message = "Enter your 8 digit key".to_string();
     }
     let cookie_ver = verify_cookie(&cookies, "Access_token_user".to_string()).await;
-    if cookie_ver.0 {
+    if cookie_ver.is_user {
         return Redirect::to("/").into_response();
     }
     let login = LoginTemplate { message: &message }; // instantiate your struct
     login.into_response()
 }
-

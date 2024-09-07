@@ -37,7 +37,7 @@ pub fn admin_router() -> Router<DbPools> {
 
 pub async fn admin(cookies: Cookies) -> Response<Body> {
     let cookie_ver = verify_cookie(&cookies, "Access_token_admin".to_string()).await;
-    if !cookie_ver.1 {
+    if !cookie_ver.is_admin {
         return Redirect::to("/admin/login").into_response();
     }
     let forms = AdminTemplate { name: "Hello" }; // instantiate your struct
@@ -50,7 +50,7 @@ pub async fn admin_login(cookies: Cookies, mut message: String) -> Response<Body
     }
     if verify_cookie(&cookies, "Access_token_admin".to_string())
         .await
-        .1
+        .is_admin
     {
         return Redirect::to("/admin").into_response();
     }

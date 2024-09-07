@@ -24,6 +24,11 @@ pub struct Claims {
     id: String,
 }
 
+pub struct CookieClaims {
+    pub is_user: bool,
+    pub is_admin: bool,
+}
+
 mod jwt_numeric_date {
     // Custom serialization of OffsetDateTime to conform with the JWT spec (RFC 7519 section 2, "Numeric Date")
     // Serializes an OffsetDateTime to a Unix timestamp (milliseconds since 1970/1/1T00:00:00T)
@@ -119,7 +124,7 @@ impl JWToken {
         Self { claim, token }
     }
 
-    pub async fn validate_token(token: String) -> (bool, bool) {
+    pub async fn validate_token(token: String) -> CookieClaims {
         let mut validation = Validation::new(Algorithm::HS512);
 
         validation.set_required_spec_claims(&["exp", "iat", "user", "sub", "is_admin", "id"]);
@@ -136,14 +141,17 @@ impl JWToken {
             Err(err) => match *err.kind() {
                 _ => {
                     println!("Parsing JWT was unsuccessful. The JWT_auth manager provided following note: {err}");
-                    return (false, false);
+                    return CookieClaims {
+                        is_admin: false,
+                        is_user: false,
+                    };
                 }
             },
         };
-        (
-            jwtoken.header.kid.expect("Unable to verify Key used") == "EnvKey",
-            jwtoken.claims.is_admin,
-        )
+        return CookieClaims {
+            is_admin: jwtoken.claims.is_admin,
+            is_user: jwtoken.header.kid.expect("Unable to get key id") == "EnvKey".to_string(),
+        };
     }
     pub async fn return_token(self) -> String {
         self.token
@@ -153,7 +161,7 @@ impl JWToken {
         self.claim.user
     }
 
-    pub async fn get_from_cookie(cookies: &Cookies,name: String)->Claims{
+    pub async fn get_from_cookie(cookies: &Cookies, name: String) -> Claims {
         let cookie = cookies.get(&name);
         let unpacked_cookie = cookie.expect("Unable to read cookie");
         let mut validation = Validation::new(Algorithm::HS512);
@@ -167,17 +175,20 @@ impl JWToken {
                     .as_bytes(),
             ),
             &validation,
-        ).expect("Unable to decode cookie");
+        )
+        .expect("Unable to decode cookie");
         let claims = jwtoken;
         claims.claims
     }
-    
 }
 
-pub async fn verify_cookie(cookies: &Cookies, name: String) -> (bool, bool) {
+pub async fn verify_cookie(cookies: &Cookies, name: String) -> CookieClaims {
     let cookie = cookies.get(&name);
     if cookie.is_none() {
-        return (false, false);
+        return CookieClaims {
+            is_user: false,
+            is_admin: false,
+        };
     } else {
         let unpacked_cookie = cookie.expect("Unable to read cookie");
         JWToken::validate_token(unpacked_cookie.value().to_string()).await
