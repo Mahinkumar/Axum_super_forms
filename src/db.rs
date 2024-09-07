@@ -1,4 +1,4 @@
-use crate::auth::hash_password;
+use crate::{auth::hash_password, forms::FormField};
 use bb8_redis::{bb8::Pool, redis, RedisConnectionManager};
 use dotenvy::dotenv;
 use redis::AsyncCommands;
@@ -68,7 +68,7 @@ pub async fn setup_db(conn: &sqlx::Pool<Postgres>) {
         .await
         .expect("Unable to create DEFAULT ADMIN in forms_user table");
 
-    sqlx::query("INSERT INTO forms(elid,fid,typ,gid,req) VALUES(0,0,'text',0,true),(1,0,'email',0,true) ON CONFLICT DO NOTHING;")
+    sqlx::query("INSERT INTO forms(elid,fid,typ,gid,req,field_name) VALUES(0,'0d00','text',0,true,'name'),(1,'0d00','email',0,true,'email') ON CONFLICT DO NOTHING;")
         .execute(conn)
         .await
         .expect("Unable to create DEFAULT form in forms table");
@@ -124,5 +124,18 @@ pub async fn redis_copy(conn: &sqlx::Pool<Postgres>, redis_pool: &Pool<RedisConn
             .await
             .expect("Unable to load db into memory");
     }
-    println!("Loaded {count} entries into Memory.");
+    println!("Loaded {count} entries into Memory.")
+}
+
+pub async fn get_form_fields(conn: &sqlx::Pool<Postgres>,form_id: &String) ->Vec<FormField> {
+    let all_fields: Vec<(String,String,String)> = sqlx::query_as("SELECT fid,typ,field_name FROM forms WHERE fid = $1;")
+    .bind(&form_id)
+    .fetch_all(conn)
+    .await
+    .expect("Unable to fetch from Database");
+    let mut vec: Vec<FormField> = vec![];
+    for i in all_fields{
+        vec.push(FormField{fid:i.0,typ:i.1,fname:i.2});
+    }
+    vec
 }

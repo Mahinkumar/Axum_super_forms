@@ -3,12 +3,10 @@ use askama_axum::{IntoResponse, Template};
 use axum::{body::Body, http::Response, response::Redirect, routing::get, Router};
 use tower_cookies::{CookieManagerLayer, Cookies};
 
-#[derive(Template)] // this will generate the code...
+#[derive(Template)]
 #[template(path = "home.html")]
 pub struct HomeTemplate<'a> {
-    // the name of the struct can be anything
-    name: &'a str, // the field name should match the variable name
-                   // in your template
+    name: &'a str, 
 }
 
 #[derive(Template)]
@@ -22,6 +20,7 @@ pub struct LoginTemplate<'a> {
 pub struct Page404Template<'a> {
     message: &'a str,
 }
+
 
 pub fn client_router() -> Router<DbPools> {
     Router::new()

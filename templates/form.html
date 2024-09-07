@@ -8,6 +8,15 @@
     <section class="bg-gray-100 text-gray-700 p-8">
         <p class="mt-4">This is a form page</p>
         <p class="mt-4">Form ID: {{id}}.</p>
+        <form class="flex flex-col items-center space-y-4" method="post">
+        {% for els in el %}
+        <div>
+          <h1 class="text-xl">{{els.fname}}</h1>
+          <input type={{ els.typ }} name={{els.fname}} placeholder="{{els.fname}}" class="w-64 h-8">
+        </div>
+        {% endfor %}
+        </form>
     </section>
+    
   {% call super() %}
 {% endblock %}
