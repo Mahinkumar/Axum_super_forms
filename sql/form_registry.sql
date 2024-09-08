@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS form_register(fid TEXT PRIMARY KEY,gid INTEGER DEFAULT 1,form_name TEXT);
