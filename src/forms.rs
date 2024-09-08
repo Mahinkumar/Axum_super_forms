@@ -8,7 +8,8 @@ use tower_cookies::{CookieManagerLayer, Cookies};
 pub struct FormField{
     pub fid: String,
     pub typ: String,
-    pub fname: String
+    pub fname: String,
+    pub question: String,
 }
 
 #[derive(Template)]

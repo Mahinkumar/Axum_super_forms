@@ -68,7 +68,7 @@ pub async fn setup_db(conn: &sqlx::Pool<Postgres>) {
         .await
         .expect("Unable to create DEFAULT ADMIN in forms_user table");
 
-    sqlx::query("INSERT INTO forms(elid,fid,typ,gid,req,field_name) VALUES(0,'0d00','text',0,true,'name'),(1,'0d00','email',0,true,'email') ON CONFLICT DO NOTHING;")
+    sqlx::query("INSERT INTO forms(elid,fid,typ,gid,req,field_name,question) VALUES(0,'0d00','text',0,true,'name','What is your name?'),(1,'0d00','email',0,true,'email','What is your Email?') ON CONFLICT DO NOTHING;")
         .execute(conn)
         .await
         .expect("Unable to create DEFAULT form in forms table");
@@ -128,14 +128,14 @@ pub async fn redis_copy(conn: &sqlx::Pool<Postgres>, redis_pool: &Pool<RedisConn
 }
 
 pub async fn get_form_fields(conn: &sqlx::Pool<Postgres>,form_id: &String) ->Vec<FormField> {
-    let all_fields: Vec<(String,String,String)> = sqlx::query_as("SELECT fid,typ,field_name FROM forms WHERE fid = $1;")
+    let all_fields: Vec<(String,String,String,String)> = sqlx::query_as("SELECT fid,typ,field_name,question FROM forms WHERE fid = $1;")
     .bind(&form_id)
     .fetch_all(conn)
     .await
     .expect("Unable to fetch from Database");
     let mut vec: Vec<FormField> = vec![];
     for i in all_fields{
-        vec.push(FormField{fid:i.0,typ:i.1,fname:i.2});
+        vec.push(FormField{fid:i.0,typ:i.1,fname:i.2,question:i.3});
     }
     vec
 }
