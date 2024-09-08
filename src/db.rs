@@ -137,15 +137,21 @@ pub async fn redis_copy(conn: &sqlx::Pool<Postgres>, redis_pool: &Pool<RedisConn
     println!("Loaded {count} entries into Memory.")
 }
 
-pub async fn get_form_fields(conn: &sqlx::Pool<Postgres>,form_id: &String) ->Vec<FormField> {
-    let all_fields: Vec<(String,String,String,String)> = sqlx::query_as("SELECT fid,typ,field_name,question FROM forms WHERE fid = $1;")
-    .bind(&form_id)
-    .fetch_all(conn)
-    .await
-    .expect("Unable to fetch from Database");
+pub async fn get_form_fields(conn: &sqlx::Pool<Postgres>, form_id: &String) -> Vec<FormField> {
+    let all_fields: Vec<(String, String, String, String)> =
+        sqlx::query_as("SELECT fid,typ,field_name,question FROM forms WHERE fid = $1;")
+            .bind(&form_id)
+            .fetch_all(conn)
+            .await
+            .expect("Unable to fetch from Database");
     let mut vec: Vec<FormField> = vec![];
-    for i in all_fields{
-        vec.push(FormField{fid:i.0,typ:i.1,fname:i.2,question:i.3});
+    for i in all_fields {
+        vec.push(FormField {
+            fid: i.0,
+            typ: i.1,
+            fname: i.2,
+            question: i.3,
+        });
     }
     vec
 }
