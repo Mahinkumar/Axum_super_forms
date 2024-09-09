@@ -36,6 +36,11 @@ pub async fn setup_db(conn: &sqlx::Pool<Postgres>) {
         .await
         .expect("Unable to setup User Table!");
 
+    sqlx::query_file!("sql/user_group.sql")
+        .execute(conn)
+        .await
+        .expect("Unable to setup user_group Table!");
+
     sqlx::query_file!("sql/form_registry.sql")
         .execute(conn)
         .await
@@ -45,6 +50,7 @@ pub async fn setup_db(conn: &sqlx::Pool<Postgres>) {
         .execute(conn)
         .await
         .expect("Unable to setup Forms Table!");
+    
 
     let admin_email =
         &env::var("DEFAULT_ADMIN_MAIL").expect("env variable DEFAULT_ADMIN_MAIL must be set!");
@@ -73,10 +79,16 @@ pub async fn setup_db(conn: &sqlx::Pool<Postgres>) {
         .await
         .expect("Unable to create DEFAULT ADMIN in forms_user table");
 
+    sqlx::query("INSERT INTO user_group(uqid,userid,gid) VALUES(0,0,1) ON CONFLICT DO NOTHING;")
+        .execute(conn)
+        .await
+        .expect("Unable to create DEFAULT user_group in forms_user table");
+
     sqlx::query("INSERT INTO form_register(fid,gid,form_name) VALUES('0d00',0,'Test_Form') ON CONFLICT DO NOTHING;")
         .execute(conn)
         .await
         .expect("Unable to create DEFAULT form in forms table");
+
 
     sqlx::query("INSERT INTO forms(elid,fid,typ,req,field_name,question) VALUES(0,'0d00','text',true,'name','What is your name?'),(1,'0d00','email',true,'email','What is your Email?') ON CONFLICT DO NOTHING;")
         .execute(conn)
