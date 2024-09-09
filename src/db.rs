@@ -42,7 +42,6 @@ pub async fn setup_db(conn: &sqlx::Pool<Postgres>) {
     let admin_hash = hash_password(
         &env::var("DEFAULT_ADMIN_PASSWORD")
             .expect("env variable DEFAULT_ADMIN_PASSWORD must be set!")
-            .as_bytes(),
     )
     .await;
 

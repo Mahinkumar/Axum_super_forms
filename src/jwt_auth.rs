@@ -172,7 +172,7 @@ impl JWToken {
     // Embed token into the cookie provided
     // Takes JWT token as input along with cookie and user type data
     // Performs embedding and does not return any value.
-    pub async fn embed_token(self,cookie: Cookies,utype: Utype) {
+    pub async fn embed_to_cookie(self,cookie: Cookies,utype: Utype) {
         let name = match utype {
             Utype::Admin => "Access_token_admin",
             Utype::User => "Access_token_user"
