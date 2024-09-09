@@ -12,9 +12,9 @@ use crate::{
     admin::admin_login,
     client::login,
     db::retrieve_admin,
-    jwt_auth::JWToken,
+    jwt_auth::{JWToken, Utype},
     mem_kv::retrieve_user_redis,
-    router::{embed_token, to_login},
+    router::to_login,
     DbPools,
 };
 
@@ -51,12 +51,11 @@ pub async fn login_handler(
         &user_data.userid.to_string(),
     )
     .await;
-    embed_token(
-        "Access_token_user".to_string(),
-        token.return_token().await,
+    token.embed_token(
         cookie,
-    )
-    .await;
+        Utype::User,
+    ).await;
+
     println!("Evaluated the user Login");
 
     Redirect::to("/").into_response()
@@ -83,12 +82,10 @@ pub async fn admin_login_handler(
     }
 
     let token = JWToken::new(&email_copy, &admin_data.1, true, &admin_data.0.to_string()).await;
-    embed_token(
-        "Access_token_admin".to_string(),
-        token.return_token().await,
+    token.embed_token(
         cookie,
-    )
-    .await;
+        Utype::Admin,
+    ).await;
     println!("Evaluated the Admin Login");
     Redirect::to("/admin").into_response()
 }

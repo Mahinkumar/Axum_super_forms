@@ -3,13 +3,18 @@ use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, 
 use serde::{Deserialize, Serialize};
 use std::env;
 use time::{Duration, OffsetDateTime};
-use tower_cookies::Cookies;
+use tower_cookies::{Cookie, Cookies};
 //use jsonwebtoken::errors::ErrorKind;
-//1600000
+
 #[allow(unused)]
 pub struct JWToken {
     claim: Claims,
     token: String,
+}
+
+pub enum Utype{
+    User,
+    Admin
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -89,6 +94,9 @@ impl Claims {
 }
 
 impl JWToken {
+    // Creates a new JWT Token 
+    // Takes inputs as email, Username, isadmin and the id 
+    // Currently validity of tokens is set to 1 day
     pub async fn new(email: &str, username: &str, isadmin: bool, id: &str) -> JWToken {
         dotenv().ok();
         let iat = OffsetDateTime::now_utc();
@@ -124,6 +132,10 @@ impl JWToken {
         Self { claim, token }
     }
 
+
+    // Performs token validations
+    // checks for all necessary claims
+    // Returns claims by the token (is admin or is user)
     pub async fn validate_token(token: String) -> CookieClaims {
         let mut validation = Validation::new(Algorithm::HS512);
 
@@ -150,47 +162,46 @@ impl JWToken {
         };
         return CookieClaims {
             is_admin: jwtoken.claims.is_admin,
+
+            // The is_user verification method is for time being and needs change.
             is_user: jwtoken.header.kid.expect("Unable to get key id") == "EnvKey".to_string(),
         };
     }
-    pub async fn return_token(self) -> String {
-        self.token
-    }
 
-    pub async fn get_claims(self) -> String {
-        self.claim.user
-    }
 
-    pub async fn get_from_cookie(cookies: &Cookies, name: String) -> Claims {
-        let cookie = cookies.get(&name);
-        let unpacked_cookie = cookie.expect("Unable to read cookie");
-        let mut validation = Validation::new(Algorithm::HS512);
-
-        validation.set_required_spec_claims(&["exp", "iat", "user", "sub", "is_admin", "id"]);
-        let jwtoken = decode::<Claims>(
-            &unpacked_cookie.value(),
-            &DecodingKey::from_secret(
-                env::var("KEY")
-                    .expect("env variable KEY must be set!")
-                    .as_bytes(),
-            ),
-            &validation,
-        )
-        .expect("Unable to decode cookie");
-        let claims = jwtoken;
-        claims.claims
-    }
-}
-
-pub async fn verify_cookie(cookies: &Cookies, name: String) -> CookieClaims {
-    let cookie = cookies.get(&name);
-    if cookie.is_none() {
-        return CookieClaims {
-            is_user: false,
-            is_admin: false,
+    // Embed token into the cookie provided
+    // Takes JWT token as input along with cookie and user type data
+    // Performs embedding and does not return any value.
+    pub async fn embed_token(self,cookie: Cookies,utype: Utype) {
+        let name = match utype {
+            Utype::Admin => "Access_token_admin",
+            Utype::User => "Access_token_user"
         };
-    } else {
-        let unpacked_cookie = cookie.expect("Unable to read cookie");
-        JWToken::validate_token(unpacked_cookie.value().to_string()).await
+        let mut auth_cookie = Cookie::new(name, self.token);
+        auth_cookie.set_http_only(true);
+        auth_cookie.set_secure(true);
+        cookie.add(auth_cookie)
+    }
+
+    //Takes cookies as inputs
+    //extracts the JWT token string and validates it
+    //Returns the claims of type CookieClaims
+    pub async fn verify_cookie(cookies: &Cookies, utype: Utype) -> CookieClaims {
+        let name = match utype {
+            Utype::Admin => "Access_token_admin",
+            Utype::User => "Access_token_user"
+        };
+        let cookie = cookies.get(&name);
+        if cookie.is_none() {
+            return CookieClaims {
+                is_user: false,
+                is_admin: false,
+            };
+        } else {
+            let unpacked_cookie = cookie.expect("Unable to read cookie");
+            JWToken::validate_token(unpacked_cookie.value().to_string()).await
+        }
     }
 }
+
+

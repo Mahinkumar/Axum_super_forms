@@ -3,7 +3,7 @@ use axum::body::Body;
 use axum::http::Response;
 use axum::Router;
 use axum::{response::Redirect, routing::post};
-use tower_cookies::{Cookie, CookieManagerLayer, Cookies};
+use tower_cookies::CookieManagerLayer;
 use tower_http::services::ServeFile;
 
 use crate::auth::{admin_login_handler, login_handler};
@@ -33,9 +33,4 @@ pub fn login_router() -> Router<DbPools> {
         .layer(CookieManagerLayer::new())
 }
 
-pub async fn embed_token(token_name: String, token: String, cookie: Cookies) {
-    let mut auth_cookie = Cookie::new(token_name, token);
-    auth_cookie.set_http_only(true);
-    auth_cookie.set_secure(true);
-    cookie.add(auth_cookie)
-}
+

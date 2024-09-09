@@ -1,4 +1,4 @@
-use crate::{jwt_auth::verify_cookie, DbPools};
+use crate::{jwt_auth::{JWToken, Utype}, DbPools};
 use askama_axum::{IntoResponse, Template};
 use axum::{body::Body, http::Response, response::Redirect, routing::get, Router};
 use tower_cookies::{CookieManagerLayer, Cookies};
@@ -36,7 +36,7 @@ pub fn admin_router() -> Router<DbPools> {
 }
 
 pub async fn admin(cookies: Cookies) -> Response<Body> {
-    let cookie_ver = verify_cookie(&cookies, "Access_token_admin".to_string()).await;
+    let cookie_ver = JWToken::verify_cookie(&cookies, Utype::Admin).await;
     if !cookie_ver.is_admin {
         return Redirect::to("/admin/login").into_response();
     }
@@ -48,7 +48,7 @@ pub async fn admin_login(cookies: Cookies, mut message: String) -> Response<Body
     if message.is_empty() {
         message = "Enter your credentials".to_string();
     }
-    if verify_cookie(&cookies, "Access_token_admin".to_string())
+    if JWToken::verify_cookie(&cookies, Utype::Admin)
         .await
         .is_admin
     {

@@ -1,7 +1,7 @@
 
 use askama::Template;
 use askama_axum::IntoResponse;
-use crate::{db::get_form_fields, jwt_auth::verify_cookie, router::to_login, DbPools};
+use crate::{db::get_form_fields, jwt_auth::{JWToken, Utype}, router::to_login, DbPools};
 use axum::{body::Body, extract::{Path, State}, http::Response, routing::get, Router};
 use tower_cookies::{CookieManagerLayer, Cookies};
 
@@ -28,7 +28,7 @@ pub fn form_router() -> Router<DbPools> {
 }
 
 pub async fn forms(State(db_pools): State<DbPools>,cookies: Cookies, Path(form_id): Path<String>) -> Response<Body> {
-    let cookie_ver = verify_cookie(&cookies, "Access_token_user".to_string()).await;
+    let cookie_ver = JWToken::verify_cookie(&cookies, Utype::User).await;
     if !cookie_ver.is_user {
         return to_login().await;
     }
