@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::{postgres::PgPoolOptions, Postgres};
 use std::env;
 
+
 //userid,email,username,passkey
 #[derive(Debug, Deserialize, FromRedisValue, Serialize, ToRedisArgs)]
 pub struct User {
@@ -26,30 +27,9 @@ pub async fn get_db_conn_pool() -> sqlx::Pool<Postgres> {
 }
 
 pub async fn setup_db(conn: &sqlx::Pool<Postgres>) {
-    sqlx::query_file!("sql/setup_admin.sql")
-        .execute(conn)
-        .await
-        .expect("Unable to setup Admin Table!");
-
-    sqlx::query_file!("sql/setup_user.sql")
-        .execute(conn)
-        .await
-        .expect("Unable to setup User Table!");
-
-    sqlx::query_file!("sql/user_group.sql")
-        .execute(conn)
-        .await
-        .expect("Unable to setup user_group Table!");
-
-    sqlx::query_file!("sql/form_registry.sql")
-        .execute(conn)
-        .await
-        .expect("Unable to setup Forms Table!");
-
-    sqlx::query_file!("sql/setup_forms.sql")
-        .execute(conn)
-        .await
-        .expect("Unable to setup Forms Table!");
+    sqlx::migrate!("./migrations")
+    .run(conn)
+    .await.expect("Unable to perform migrations");
 
     let admin_email =
         &env::var("DEFAULT_ADMIN_MAIL").expect("env variable DEFAULT_ADMIN_MAIL must be set!");
