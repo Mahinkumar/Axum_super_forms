@@ -50,7 +50,6 @@ pub async fn setup_db(conn: &sqlx::Pool<Postgres>) {
         .execute(conn)
         .await
         .expect("Unable to setup Forms Table!");
-    
 
     let admin_email =
         &env::var("DEFAULT_ADMIN_MAIL").expect("env variable DEFAULT_ADMIN_MAIL must be set!");
@@ -89,7 +88,6 @@ pub async fn setup_db(conn: &sqlx::Pool<Postgres>) {
         .await
         .expect("Unable to create DEFAULT form in forms table");
 
-
     sqlx::query("INSERT INTO forms(elid,fid,typ,req,field_name,question) VALUES(0,'0d00','text',true,'name','What is your name?'),(1,'0d00','email',true,'email','What is your Email?') ON CONFLICT DO NOTHING;")
         .execute(conn)
         .await
@@ -127,22 +125,25 @@ pub async fn retrieve_user(
 
 pub async fn redis_copy(conn: &sqlx::Pool<Postgres>, redis_pool: &Pool<RedisConnectionManager>) {
     let mut redis_conn = redis_pool.get().await.unwrap();
-    let all_kv: Vec<(i32, String, String, String)> = sqlx::query_as("SELECT * FROM forms_user;")
-        .fetch_all(conn)
-        .await
-        .expect("Unable to fetch from Database");
-    print!("Setting up Redis          : ");
     let mut count = 0;
-    for i in all_kv {
+    print!("Setting up Redis          : ");
+    for (userid, email, username, passkey) in
+        sqlx::query_as::<_, (i32, String, String, String)>("SELECT * FROM forms_user")
+            .fetch_all(conn)
+            .await
+            .expect("Unable to fetch for copy")
+    {
         count += 1;
-        let j = User {
-            email: i.1,
-            username: i.2,
-            passkey: i.3.clone(),
-            userid: i.0,
+
+        let user = User {
+            userid,
+            email,
+            username,
+            passkey: passkey.clone(),
         };
+
         redis_conn
-            .set::<&str, &User, ()>(&i.3, &j)
+            .set::<&str, &User, ()>(&passkey, &user)
             .await
             .expect("Unable to load db into memory");
     }
