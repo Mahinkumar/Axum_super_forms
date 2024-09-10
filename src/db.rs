@@ -128,6 +128,7 @@ pub async fn redis_copy(conn: &sqlx::Pool<Postgres>, redis_pool: &Pool<RedisConn
             passkey: passkey.clone(),
         };
 
+        let passkey = format!("{passkey}_Userkey");
         redis_conn
             .set::<&str, &User, ()>(&passkey, &user)
             .await

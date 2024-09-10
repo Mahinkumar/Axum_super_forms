@@ -35,8 +35,6 @@ pub struct UserLogin {
 }
 
 
-
-
 impl Login {
 
     // Handle user Login POST query

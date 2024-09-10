@@ -32,6 +32,7 @@ pub async fn retrieve_user_redis(
     key: String,
     conn_pool: &Pool<RedisConnectionManager>,
 ) -> Result<User, bb8_redis::redis::RedisError> {
+    let key = format!("{key}_Userkey");
     let mut redis_conn = conn_pool.get().await.unwrap();
     let value = redis_conn.get::<&str, User>(&key).await;
     value
