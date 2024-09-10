@@ -1,4 +1,10 @@
+use askama_axum::Response;
+use axum::extract::Request;
+use axum::http::uri;
+use axum::middleware;
+use axum::middleware::Next;
 use axum::Router;
+use axum::ServiceExt;
 use bb8_redis::bb8::Pool;
 use bb8_redis::RedisConnectionManager;
 use db::get_db_conn_pool;
@@ -7,6 +13,9 @@ use db::setup_db;
 use forms::form_router;
 use mem_kv::get_redis_pool;
 use sqlx::Postgres;
+use tower::Layer;
+use tower_http::normalize_path::NormalizePath;
+use tower_http::normalize_path::NormalizePathLayer;
 use std::net::SocketAddr;
 
 pub mod admin;
@@ -85,13 +94,17 @@ async fn main() {
         .merge(client_router())
         .merge(form_router());
 
-    tokio::join!(serve(axum_router.with_state(database_pools), PORT_HOST));
+    let app: Router = axum_router.with_state(database_pools);
+    let app = NormalizePathLayer::trim_trailing_slash().layer(app);
+
+    tokio::join!(serve(app, PORT_HOST));
 }
 
-async fn serve(app: Router, port: u16) {
+async fn serve(app: NormalizePath<Router>, port: u16) {
     println!("Serving on address        : http://127.0.0.1:{port}");
     println!("=================================================================");
     let addr = SocketAddr::from((ADDR, port));
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-    axum::serve(listener, app).await.unwrap();
+    axum::serve(listener,  ServiceExt::<Request>::into_make_service(app)).await.unwrap();
 }
+
