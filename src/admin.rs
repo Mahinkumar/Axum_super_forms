@@ -1,4 +1,7 @@
-use crate::{jwt_auth::{JWToken, Utype}, DbPools};
+use crate::{
+    jwt_auth::{JWToken, Utype},
+    DbPools,
+};
 use askama_axum::{IntoResponse, Template};
 use axum::{body::Body, http::Response, response::Redirect, routing::get, Router};
 use tower_cookies::{CookieManagerLayer, Cookies};

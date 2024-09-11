@@ -137,7 +137,7 @@ impl JWToken {
     pub async fn all_claims(token: &str) -> Result<TokenData<Claims>, jsonwebtoken::errors::Error> {
         let validation = Validation::new(Algorithm::HS512);
         decode::<Claims>(
-            &token,
+            token,
             &DecodingKey::from_secret(
                 env::var("KEY")
                     .expect("env variable KEY must be set!")
@@ -153,23 +153,21 @@ impl JWToken {
     pub async fn validate_token(token: String) -> CookieClaims {
         let jwtoken = match JWToken::all_claims(&token).await {
             Ok(c) => c,
-            Err(err) => match *err.kind() {
-                _ => {
-                    println!("Parsing JWT was unsuccessful. The JWT_auth manager provided following note: {err}");
-                    return CookieClaims {
-                        is_admin: false,
-                        is_user: false,
-                    };
-                }
-            },
+            Err(err) => {
+                println!("Parsing JWT was unsuccessful. The JWT_auth manager provided following note: {err}");
+                return CookieClaims {
+                    is_admin: false,
+                    is_user: false,
+                };
+            }
         };
 
-        return CookieClaims {
+        CookieClaims {
             is_admin: jwtoken.claims.is_admin,
 
             // The is_user verification method is for time being and needs change.
-            is_user: jwtoken.header.kid.expect("Unable to get key id") == "EnvKey".to_string(),
-        };
+            is_user: jwtoken.header.kid.expect("Unable to get key id") == *"EnvKey",
+        }
     }
 
     // Embed token into the cookie provided
@@ -194,12 +192,12 @@ impl JWToken {
             Utype::Admin => "Access_token_admin",
             Utype::User => "Access_token_user",
         };
-        let cookie = cookies.get(&name);
+        let cookie = cookies.get(name);
         if cookie.is_none() {
-            return CookieClaims {
+            CookieClaims {
                 is_user: false,
                 is_admin: false,
-            };
+            }
         } else {
             let unpacked_cookie = cookie.expect("Unable to read cookie");
             JWToken::validate_token(unpacked_cookie.value().to_string()).await

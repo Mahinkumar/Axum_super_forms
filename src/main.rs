@@ -136,7 +136,7 @@ async fn shutdown_signal() {
 }
 
 async fn graceful_shutdown_procedure() {
-    println!("");
+    println!();
     println!("Shutdown Initiated");
 
     // We offload redis data to db here

@@ -19,8 +19,7 @@ pub async fn get_redis_pool() -> Pool<RedisConnectionManager> {
     )
     .unwrap();
 
-    let pool = bb8::Pool::builder().build(manager).await.unwrap();
-    pool
+    bb8::Pool::builder().build(manager).await.unwrap()
 }
 
 pub async fn ping(conn_pool: &Pool<RedisConnectionManager>) -> bool {
@@ -28,7 +27,7 @@ pub async fn ping(conn_pool: &Pool<RedisConnectionManager>) -> bool {
     conn.set::<&str, &str, ()>("Check", "Response recieved!")
         .await
         .unwrap();
-    conn.get::<&str, String>("Check").await.unwrap() == "Response recieved!".to_string()
+    conn.get::<&str, String>("Check").await.unwrap() == *"Response recieved!"
 }
 
 pub async fn retrieve_user_redis(
@@ -37,8 +36,8 @@ pub async fn retrieve_user_redis(
 ) -> Result<User, bb8_redis::redis::RedisError> {
     let key = format!("{key}_Userkey");
     let mut redis_conn = conn_pool.get().await.unwrap();
-    let value = redis_conn.get::<&str, User>(&key).await;
-    value
+
+    redis_conn.get::<&str, User>(&key).await
 }
 
 pub async fn retrieve_forms(
@@ -47,8 +46,8 @@ pub async fn retrieve_forms(
 ) -> Result<FormData, bb8_redis::redis::RedisError> {
     let key = format!("{key}_Formkey");
     let mut redis_conn = conn_pool.get().await.expect("Unable to acquire connection");
-    let value = redis_conn.get::<&str, FormData>(&key).await;
-    value
+
+    redis_conn.get::<&str, FormData>(&key).await
 }
 
 pub async fn cache_form_input(

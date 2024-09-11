@@ -1,4 +1,8 @@
-use crate::{jwt_auth::{JWToken, Utype}, router::to_login, DbPools};
+use crate::{
+    jwt_auth::{JWToken, Utype},
+    router::to_login,
+    DbPools,
+};
 use askama_axum::{IntoResponse, Template};
 use axum::{body::Body, http::Response, response::Redirect, routing::get, Router};
 use tower_cookies::{CookieManagerLayer, Cookies};
@@ -6,7 +10,7 @@ use tower_cookies::{CookieManagerLayer, Cookies};
 #[derive(Template)]
 #[template(path = "home.html")]
 pub struct HomeTemplate<'a> {
-    name: &'a str, 
+    name: &'a str,
 }
 
 #[derive(Template)]
@@ -20,7 +24,6 @@ pub struct LoginTemplate<'a> {
 pub struct Page404Template<'a> {
     message: &'a str,
 }
-
 
 pub fn client_router() -> Router<DbPools> {
     Router::new()

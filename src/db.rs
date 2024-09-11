@@ -201,7 +201,7 @@ pub async fn redis_load(conn: &sqlx::Pool<Postgres>, redis_pool: &Pool<RedisConn
 pub async fn get_form_fields(conn: &sqlx::Pool<Postgres>, form_id: &String) -> Vec<FormField> {
     let all_fields: Vec<(String, String, String, String)> =
         sqlx::query_as("SELECT fid,typ,field_name,question FROM forms WHERE fid = $1;")
-            .bind(&form_id)
+            .bind(form_id)
             .fetch_all(conn)
             .await
             .expect("Unable to fetch from Database");

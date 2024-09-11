@@ -32,5 +32,3 @@ pub fn login_router() -> Router<DbPools> {
         .route("/admin/login", post(Login::admin_handler))
         .layer(CookieManagerLayer::new())
 }
-
-

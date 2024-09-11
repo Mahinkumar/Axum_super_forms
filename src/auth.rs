@@ -18,9 +18,9 @@ use crate::{
     DbPools,
 };
 
-pub enum Login{
+pub enum Login {
     Admin(AdminLogin),
-    User(UserLogin)
+    User(UserLogin),
 }
 
 #[derive(Deserialize)]
@@ -34,9 +34,7 @@ pub struct UserLogin {
     key: String,
 }
 
-
 impl Login {
-
     // Handle user Login POST query
     // Success redirects to home
     // Else reload page with error info
@@ -54,7 +52,7 @@ impl Login {
                 return login(cookie, "Invalid key".to_string()).await;
             }
         };
-    
+
         let token = JWToken::new(
             &user_data.email,
             &user_data.username,
@@ -62,13 +60,10 @@ impl Login {
             &user_data.userid.to_string(),
         )
         .await;
-        token.embed_to_cookie(
-            cookie,
-            Utype::User,
-        ).await;
-    
+        token.embed_to_cookie(cookie, Utype::User).await;
+
         println!("Evaluated the user Login");
-    
+
         Redirect::to("/").into_response()
     }
 
@@ -90,23 +85,19 @@ impl Login {
                 return admin_login(cookie, "Invalid credentials".to_string()).await;
             }
         };
-    
+
         if !verify_hash(&admin_data.2, &login.password).await {
             return to_login().await;
         }
-    
+
         let token = JWToken::new(&email_copy, &admin_data.1, true, &admin_data.0.to_string()).await;
-        token.embed_to_cookie(
-            cookie,
-            Utype::Admin,
-        ).await;
+        token.embed_to_cookie(cookie, Utype::Admin).await;
         println!("Evaluated the Admin Login");
         Redirect::to("/admin").into_response()
     }
 }
 
-
-/// Generate argon2 hash from password 
+/// Generate argon2 hash from password
 pub async fn hash_password(password: &str) -> String {
     let salt = SaltString::generate(&mut OsRng);
     let argon2 = Argon2::default();
@@ -116,19 +107,11 @@ pub async fn hash_password(password: &str) -> String {
     password_hash.to_string()
 }
 
-/// Verify argon2 hash with password 
+/// Verify argon2 hash with password
 pub async fn verify_hash(password_hash: &str, password: &str) -> bool {
     let parsed_hash =
-        PasswordHash::new(&password_hash).expect("Recieved a String that is not password Hash");
+        PasswordHash::new(password_hash).expect("Recieved a String that is not password Hash");
     Argon2::default()
         .verify_password(password.as_bytes(), &parsed_hash)
         .is_ok()
 }
-
-
-
-
-
-
-
-
