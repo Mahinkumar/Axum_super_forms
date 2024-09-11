@@ -40,7 +40,7 @@ pub async fn admin(cookies: Cookies) -> Response<Body> {
     if !cookie_ver.is_admin {
         return Redirect::to("/admin/login").into_response();
     }
-    let forms = AdminTemplate { name: "Hello" }; // instantiate your struct
+    let forms = AdminTemplate { name: "Admin" }; // instantiate your struct
     forms.into_response()
 }
 
