@@ -15,11 +15,14 @@
           </div>
           <form class="flex p-6 flex-col space-y-4 w-full justify-center place-self-start" method="post">
           {% for els in el %}
-          <label class="block">
-            <span class="text-gray-700">{{els.question}}</span>
-            <input type={{ els.typ }} class="mt-1 block w-full form-input" placeholder="{{els.fname}}" />
-          </label>
-          {% endfor %}
+            <label class="block">
+              <span class="text-gray-700">{{els.question}}</span>
+              <input type={{ els.typ }} class="mt-1 block w-full form-input" placeholder="{{els.fname}}" name="{{els.fname}}"/>
+            </label>
+            {% endfor %}
+            <div class="w-full flex justify-end p-5">
+              <button type="submit" class="w-80 h-12 bg-black text-white">Submit</button>
+            </div>
           </form>
         </div>
     </section>
