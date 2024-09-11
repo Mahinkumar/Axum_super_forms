@@ -9,10 +9,12 @@ use db::setup_db;
 use forms::form_router;
 use mem_kv::get_redis_pool;
 use sqlx::Postgres;
+use std::net::SocketAddr;
+use tokio::signal;
+use tokio::time::Duration;
 use tower::Layer;
 use tower_http::normalize_path::NormalizePath;
 use tower_http::normalize_path::NormalizePathLayer;
-use std::net::SocketAddr;
 
 pub mod admin;
 pub mod auth;
@@ -22,6 +24,7 @@ pub mod forms;
 pub mod jwt_auth;
 pub mod mem_kv;
 pub mod router;
+use tower_http::timeout::TimeoutLayer;
 
 use admin::admin_router;
 use client::client_router;
@@ -88,11 +91,11 @@ async fn main() {
         .merge(admin_router())
         .merge(general_router())
         .merge(client_router())
-        .merge(form_router());
+        .merge(form_router())
+        .layer(TimeoutLayer::new(Duration::from_secs(5)));
 
     let app: Router = axum_router.with_state(database_pools);
     let app = NormalizePathLayer::trim_trailing_slash().layer(app);
-
     tokio::join!(serve(app, PORT_HOST));
 }
 
@@ -101,6 +104,42 @@ async fn serve(app: NormalizePath<Router>, port: u16) {
     println!("=================================================================");
     let addr = SocketAddr::from((ADDR, port));
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-    axum::serve(listener,  ServiceExt::<Request>::into_make_service(app)).await.unwrap();
+    axum::serve(listener, ServiceExt::<Request>::into_make_service(app))
+        .with_graceful_shutdown(shutdown_signal())
+        .await
+        .unwrap();
 }
 
+async fn shutdown_signal() {
+    let ctrl_c = async {
+        signal::ctrl_c()
+            .await
+            .expect("failed to install Ctrl+C handler");
+        graceful_shutdown_procedure().await
+    };
+
+    #[cfg(unix)]
+    let terminate = async {
+        signal::unix::signal(signal::unix::SignalKind::terminate())
+            .expect("failed to install signal handler")
+            .recv()
+            .await;
+        graceful_shutdown_procedure().await
+    };
+
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+    tokio::select! {
+        _ = ctrl_c => {},
+        _ = terminate => {},
+    }
+}
+
+async fn graceful_shutdown_procedure() {
+    println!("");
+    println!("Shutdown Initiated");
+
+    // We offload redis data to db here
+
+    println!("Performing a graceful shutdown");
+}
