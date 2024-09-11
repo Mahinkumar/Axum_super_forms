@@ -7,7 +7,10 @@ use bb8_redis::RedisConnectionManager;
 use dotenvy::dotenv;
 use std::env;
 
-use crate::db::{FormData, User};
+use crate::{
+    db::{FormData, User},
+    forms::FormInputAll,
+};
 
 pub async fn get_redis_pool() -> Pool<RedisConnectionManager> {
     dotenv().ok();
@@ -41,9 +44,23 @@ pub async fn retrieve_user_redis(
 pub async fn retrieve_forms(
     key: &String,
     conn_pool: &Pool<RedisConnectionManager>,
-) -> Result<FormData, bb8_redis::redis::RedisError>{
+) -> Result<FormData, bb8_redis::redis::RedisError> {
     let key = format!("{key}_Formkey");
     let mut redis_conn = conn_pool.get().await.expect("Unable to acquire connection");
     let value = redis_conn.get::<&str, FormData>(&key).await;
     value
+}
+
+pub async fn cache_form_input(
+    uname: &String,
+    form: &String,
+    conn_pool: &Pool<RedisConnectionManager>,
+    inputs: FormInputAll,
+) {
+    let key = format!("{uname}_{form}_FormInputkey");
+    let mut redis_conn = conn_pool.get().await.expect("Unable to acquire connection");
+    redis_conn
+        .set::<&str, &FormInputAll, ()>(&key, &inputs)
+        .await
+        .unwrap();
 }

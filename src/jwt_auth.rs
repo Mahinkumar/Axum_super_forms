@@ -1,5 +1,7 @@
 use dotenvy::dotenv;
-use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
+use jsonwebtoken::{
+    decode, encode, Algorithm, DecodingKey, EncodingKey, Header, TokenData, Validation,
+};
 use serde::{Deserialize, Serialize};
 use std::env;
 use time::{Duration, OffsetDateTime};
@@ -12,15 +14,15 @@ pub struct JWToken {
     token: String,
 }
 
-pub enum Utype{
+pub enum Utype {
     User,
-    Admin
+    Admin,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Claims {
-    sub: String,
-    user: String,
+    pub sub: String,
+    pub user: String,
     #[serde(with = "jwt_numeric_date")]
     iat: OffsetDateTime,
     #[serde(with = "jwt_numeric_date")]
@@ -94,8 +96,8 @@ impl Claims {
 }
 
 impl JWToken {
-    // Creates a new JWT Token 
-    // Takes inputs as email, Username, isadmin and the id 
+    // Creates a new JWT Token
+    // Takes inputs as email, Username, isadmin and the id
     // Currently validity of tokens is set to 1 day
     pub async fn new(email: &str, username: &str, isadmin: bool, id: &str) -> JWToken {
         dotenv().ok();
@@ -132,15 +134,9 @@ impl JWToken {
         Self { claim, token }
     }
 
-
-    // Performs token validations
-    // checks for all necessary claims
-    // Returns claims by the token (is admin or is user)
-    pub async fn validate_token(token: String) -> CookieClaims {
-        let mut validation = Validation::new(Algorithm::HS512);
-
-        validation.set_required_spec_claims(&["exp", "iat", "user", "sub", "is_admin", "id"]);
-        let jwtoken = match decode::<Claims>(
+    pub async fn all_claims(token: &str) -> Result<TokenData<Claims>, jsonwebtoken::errors::Error> {
+        let validation = Validation::new(Algorithm::HS512);
+        decode::<Claims>(
             &token,
             &DecodingKey::from_secret(
                 env::var("KEY")
@@ -148,7 +144,14 @@ impl JWToken {
                     .as_bytes(),
             ),
             &validation,
-        ) {
+        )
+    }
+
+    // Performs token validations
+    // checks for all necessary claims
+    // Returns claims by the token (is admin or is user)
+    pub async fn validate_token(token: String) -> CookieClaims {
+        let jwtoken = match JWToken::all_claims(&token).await {
             Ok(c) => c,
             Err(err) => match *err.kind() {
                 _ => {
@@ -160,6 +163,7 @@ impl JWToken {
                 }
             },
         };
+
         return CookieClaims {
             is_admin: jwtoken.claims.is_admin,
 
@@ -168,14 +172,13 @@ impl JWToken {
         };
     }
 
-
     // Embed token into the cookie provided
     // Takes JWT token as input along with cookie and user type data
     // Performs embedding and does not return any value.
-    pub async fn embed_to_cookie(self,cookie: Cookies,utype: Utype) {
+    pub async fn embed_to_cookie(self, cookie: Cookies, utype: Utype) {
         let name = match utype {
             Utype::Admin => "Access_token_admin",
-            Utype::User => "Access_token_user"
+            Utype::User => "Access_token_user",
         };
         let mut auth_cookie = Cookie::new(name, self.token);
         auth_cookie.set_http_only(true);
@@ -189,7 +192,7 @@ impl JWToken {
     pub async fn verify_cookie(cookies: &Cookies, utype: Utype) -> CookieClaims {
         let name = match utype {
             Utype::Admin => "Access_token_admin",
-            Utype::User => "Access_token_user"
+            Utype::User => "Access_token_user",
         };
         let cookie = cookies.get(&name);
         if cookie.is_none() {
@@ -203,5 +206,3 @@ impl JWToken {
         }
     }
 }
-
-
