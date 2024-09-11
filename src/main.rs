@@ -1,8 +1,4 @@
-use askama_axum::Response;
 use axum::extract::Request;
-use axum::http::uri;
-use axum::middleware;
-use axum::middleware::Next;
 use axum::Router;
 use axum::ServiceExt;
 use bb8_redis::bb8::Pool;
