@@ -5,18 +5,23 @@
 
 
 {% block content %}
-    <section class="bg-gray-100 text-gray-700 p-8 flex justify-center flex-col items-center">
-        <p class="mt-4">This is a form page</p>
-        <p class="mt-4">Form ID: {{id}}.</p>
-
-        <form class="flex flex-col items-center space-y-4 w-[80%] justify-center" method="post">
-        {% for els in el %}
-        <label class="block w-[50%]">
-          <span class="text-gray-700">{{els.question}}</span>
-          <input type={{ els.typ }} class="mt-1 block w-full form-input" placeholder="{{els.fname}}" />
-        </label>
-        {% endfor %}
-        </form>
+    <section class="bg-gray-100 text-gray-700 p-8 flex justify-center">
+        <div class="w-[60%] flex justify-center flex-col items-center">
+          <div class="p-6 bg-slate-100">
+            <div class="mt-4 text-3xl font-bold">Lorem ipsum dolor</div>
+            <p class="mt-4">Form ID: {{id}}.</p>
+            <p class="mt-4">Created by: Admin.</p>
+            <div class="mt-4 text-xl">Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae </div>
+          </div>
+          <form class="flex p-6 flex-col space-y-4 w-full justify-center place-self-start" method="post">
+          {% for els in el %}
+          <label class="block">
+            <span class="text-gray-700">{{els.question}}</span>
+            <input type={{ els.typ }} class="mt-1 block w-full form-input" placeholder="{{els.fname}}" />
+          </label>
+          {% endfor %}
+          </form>
+        </div>
     </section>
     
   {% call super() %}
