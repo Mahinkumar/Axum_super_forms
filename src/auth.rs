@@ -2,7 +2,7 @@ use argon2::{
     password_hash::{PasswordHash, PasswordHasher, SaltString},
     Argon2, PasswordVerifier,
 };
-use axum::{extract::State, http::Uri, response::IntoResponse};
+use axum::{extract::State, response::IntoResponse};
 use axum::{response::Redirect, Form};
 use rand::rngs::OsRng;
 use serde::Deserialize;
@@ -41,10 +41,8 @@ impl Login {
     pub async fn user_handler(
         State(db_pools): State<DbPools>,
         cookie: Cookies,
-        uri: Uri,
         Form(logins): Form<UserLogin>,
     ) -> impl IntoResponse {
-        println!("Form from {} Posted {}.", uri, logins.key);
         let user_data = match retrieve_user_redis(logins.key, &db_pools.redis_pool).await {
             Ok(c) => c,
             Err(err) => {
@@ -62,8 +60,6 @@ impl Login {
         .await;
         token.embed_to_cookie(cookie, Utype::User).await;
 
-        println!("Evaluated the user Login");
-
         Redirect::to("/").into_response()
     }
 
@@ -73,10 +69,8 @@ impl Login {
     pub async fn admin_handler(
         State(db_pools): State<DbPools>,
         cookie: Cookies,
-        uri: Uri,
         Form(login): Form<AdminLogin>,
     ) -> impl IntoResponse {
-        println!("Form posted from {} by {}.", uri, &login.email);
         let email_copy = login.email.clone();
         let admin_data = match retrieve_admin(db_pools.postgres_pool, login.email).await {
             Ok(c) => c,
@@ -92,7 +86,6 @@ impl Login {
 
         let token = JWToken::new(&email_copy, &admin_data.1, true, &admin_data.0.to_string()).await;
         token.embed_to_cookie(cookie, Utype::Admin).await;
-        println!("Evaluated the Admin Login");
         Redirect::to("/admin").into_response()
     }
 }
