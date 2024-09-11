@@ -4,7 +4,7 @@ use axum::ServiceExt;
 use bb8_redis::bb8::Pool;
 use bb8_redis::RedisConnectionManager;
 use db::get_db_conn_pool;
-use db::redis_copy;
+use db::redis_load;
 use db::setup_db;
 use forms::form_router;
 use mem_kv::get_redis_pool;
@@ -65,7 +65,7 @@ async fn main() {
     println!("=================================================================");
     println!("Starting Axum Super forms Server.");
     println!(
-        "Redis Server Status       : {}",
+        "Redis Server Status          : {}",
         if ping(&redis_pool).await {
             "Active"
         } else {
@@ -73,7 +73,7 @@ async fn main() {
         }
     );
     println!(
-        "Postgres Server Status    : {}",
+        "Postgres Server Status       : {}",
         if ping_db(&postgres_pool).await {
             "Active"
         } else {
@@ -82,7 +82,7 @@ async fn main() {
     );
 
     setup_db(&postgres_pool).await;
-    redis_copy(&postgres_pool, &redis_pool).await;
+    redis_load(&postgres_pool, &redis_pool).await;
     let axum_router = Router::new()
         .merge(login_router())
         .merge(admin_router())
@@ -97,7 +97,7 @@ async fn main() {
 }
 
 async fn serve(app: NormalizePath<Router>, port: u16) {
-    println!("Serving on address        : http://127.0.0.1:{port}");
+    println!("Serving on address           : http://127.0.0.1:{port}");
     println!("=================================================================");
     let addr = SocketAddr::from((ADDR, port));
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();

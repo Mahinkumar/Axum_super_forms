@@ -16,6 +16,13 @@ pub struct User {
     pub passkey: String,
 }
 
+#[derive(Debug, Deserialize, FromRedisValue, Serialize, ToRedisArgs)]
+pub struct FormData {
+    pub fid: String,
+    pub gid: String,
+    pub fields: Vec<FormField>,
+}
+
 pub async fn get_db_conn_pool() -> sqlx::Pool<Postgres> {
     dotenv().ok();
     PgPoolOptions::new()
@@ -41,7 +48,7 @@ pub async fn setup_db(conn: &sqlx::Pool<Postgres>) {
 
     let admin_hash = hash_password(
         &env::var("DEFAULT_ADMIN_PASSWORD")
-            .expect("env variable DEFAULT_ADMIN_PASSWORD must be set!")
+            .expect("env variable DEFAULT_ADMIN_PASSWORD must be set!"),
     )
     .await;
 
@@ -109,17 +116,23 @@ pub async fn retrieve_user(
         .await
 }
 
-pub async fn redis_copy(conn: &sqlx::Pool<Postgres>, redis_pool: &Pool<RedisConnectionManager>) {
-    let mut redis_conn = redis_pool.get().await.unwrap();
-    let mut count = 0;
-    print!("Setting up Redis          : ");
-    for (userid, email, username, passkey) in
+pub async fn redis_load(conn: &sqlx::Pool<Postgres>, redis_pool: &Pool<RedisConnectionManager>) {
+    let mut redis_conn = redis_pool
+        .get()
+        .await
+        .expect("Unable to acquire connection for redis");
+
+    // Fetches user data from db and writes to redis
+    print!("Setting up Redis User cache  : ");
+    let mut ucount = 0;
+    let user_data_from_db =
         sqlx::query_as::<_, (i32, String, String, String)>("SELECT * FROM forms_user")
             .fetch_all(conn)
             .await
-            .expect("Unable to fetch for copy")
-    {
-        count += 1;
+            .expect("Unable to fetch for copy");
+
+    for (userid, email, username, passkey) in user_data_from_db {
+        ucount += 1;
 
         let user = User {
             userid,
@@ -134,7 +147,55 @@ pub async fn redis_copy(conn: &sqlx::Pool<Postgres>, redis_pool: &Pool<RedisConn
             .await
             .expect("Unable to load db into memory");
     }
-    println!("Loaded {count} entries into Memory.")
+    println!("Loaded {ucount} user(s) data into Memory.");
+
+    // Fetches forms data from db and writes to redis
+    print!("Setting up Redis Forms cache : ");
+    let mut fcount = 0;
+    let form_register_vals_from_db =
+        sqlx::query_as::<_, (String, i32)>("SELECT fid,gid FROM form_register")
+            .fetch_all(conn)
+            .await
+            .expect("Unable to fetch from Database");
+
+    for (form_id, group_id) in form_register_vals_from_db {
+        let mut form_fields: Vec<FormField> = vec![];
+        fcount += 1;
+
+        let form_fields_from_db =
+            sqlx::query_as("SELECT fid,typ,field_name,question FROM forms WHERE fid = $1;")
+                .bind::<&String>(&form_id)
+                .fetch_all(conn)
+                .await
+                .expect("Unable to fetch from Database");
+
+        for (fid, typ, fname, question) in form_fields_from_db {
+            let forms = FormField {
+                fid,
+                typ,
+                fname,
+                question,
+            };
+
+            form_fields.push(forms);
+        }
+
+        // Creating the formdata value
+        let formkey = format!("{}_Formkey", &form_id);
+        let formdat: FormData = FormData {
+            fid: form_id,
+            gid: group_id.to_string(),
+            fields: form_fields,
+        };
+
+        // Insert the key(fid) and Value(formdata) pair into redis
+        redis_conn
+            .set::<&str, &FormData, ()>(&formkey, &formdat)
+            .await
+            .expect("Unable to load db into memory");
+    }
+
+    println!("Loaded {fcount} form(s) data into Memory.")
 }
 
 pub async fn get_form_fields(conn: &sqlx::Pool<Postgres>, form_id: &String) -> Vec<FormField> {
