@@ -1,6 +1,5 @@
 use crate::{
     jwt_auth::{JWToken, Utype},
-    router::to_login,
     DbPools,
 };
 use askama_axum::{IntoResponse, Template};
@@ -13,6 +12,7 @@ use axum::{
     routing::get,
     Router,
 };
+use axum_extra::extract::CookieJar;
 use tower_cookies::{CookieManagerLayer, Cookies};
 
 #[derive(Template)]
@@ -51,11 +51,7 @@ pub async fn handle_404() -> Response<Body> {
     page404.into_response()
 }
 
-pub async fn home(cookies: Cookies) -> Response<Body> {
-    let cookie_ver = JWToken::verify_cookie(&cookies, Utype::User).await;
-    if !cookie_ver.is_user {
-        return to_login().await;
-    }
+pub async fn home() -> Response<Body> {
     let home = HomeTemplate { name: "User" }; // instantiate your struct
     home.into_response()
 }
@@ -73,12 +69,21 @@ pub async fn login(cookies: Cookies, mut message: String) -> Response<Body> {
 }
 
 pub async fn client_auth_middleware(request: Request, next: Next) -> Response<Body> {
+    let jar = CookieJar::from_headers(request.headers());
+    let cookie_unpacked = jar.get("Access_token_user");
 
-    // We do authentication to requests
-    // Redirect to needed layer in case of an issue.
+    let cookie = match cookie_unpacked {
+        Some(_) => cookie_unpacked.expect("Failed to unwrap cookie jar"),
+        None => return Redirect::to("/login").into_response(),
+    };
 
-    // Once auth is done we allow for the request to be processed
-    // Collect the response and make any necessary changes to it
-    let response = next.run(request).await;
-    return response;
+    if JWToken::validate_token(cookie.value().to_string())
+        .await
+        .is_user
+    {
+        let response = next.run(request).await;
+        return response;
+    } else {
+        return Redirect::to("/login").into_response();
+    }
 }

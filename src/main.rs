@@ -1,20 +1,12 @@
-use axum::extract::Request;
-use axum::Router;
-use axum::ServiceExt;
-use bb8_redis::bb8::Pool;
-use bb8_redis::RedisConnectionManager;
-use db::get_db_conn_pool;
-use db::redis_load;
-use db::setup_db;
-use forms::form_router;
-use mem_kv::get_redis_pool;
+use axum::{extract::Request, Router, ServiceExt};
+use bb8_redis::{bb8::Pool, RedisConnectionManager};
 use sqlx::Postgres;
 use std::net::SocketAddr;
 use tokio::signal;
 use tokio::time::Duration;
-use tower::Layer;
-use tower_http::normalize_path::NormalizePath;
-use tower_http::normalize_path::NormalizePathLayer;
+use tower::{limit::concurrency::ConcurrencyLimitLayer, Layer};
+use tower_http::normalize_path::{NormalizePath, NormalizePathLayer};
+use tower_http::timeout::TimeoutLayer;
 
 pub mod admin;
 pub mod auth;
@@ -24,11 +16,13 @@ pub mod forms;
 pub mod jwt_auth;
 pub mod mem_kv;
 pub mod router;
-use tower_http::timeout::TimeoutLayer;
 
 use admin::admin_router;
 use client::client_router;
 use db::ping_db;
+use db::{get_db_conn_pool, redis_load, setup_db};
+use forms::form_router;
+use mem_kv::get_redis_pool;
 use mem_kv::ping;
 use router::general_router;
 use router::login_router;
@@ -92,6 +86,7 @@ async fn main() {
         .merge(general_router())
         .merge(client_router())
         .merge(form_router())
+        .layer(ConcurrencyLimitLayer::new(512))
         .layer(TimeoutLayer::new(Duration::from_secs(5)));
 
     let app: Router = axum_router.with_state(database_pools);

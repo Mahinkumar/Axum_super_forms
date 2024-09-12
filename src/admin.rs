@@ -3,7 +3,16 @@ use crate::{
     DbPools,
 };
 use askama_axum::{IntoResponse, Template};
-use axum::{body::Body, extract::Request, http::Response, middleware::{self, Next}, response::Redirect, routing::get, Router};
+use axum::{
+    body::Body,
+    extract::Request,
+    http::Response,
+    middleware::{self, Next},
+    response::Redirect,
+    routing::get,
+    Router,
+};
+use axum_extra::extract::cookie::CookieJar;
 use tower_cookies::{CookieManagerLayer, Cookies};
 
 #[derive(Template)]
@@ -35,14 +44,9 @@ pub fn admin_router() -> Router<DbPools> {
         .route("/admin", get(admin))
         .layer(middleware::from_fn(admin_auth_middleware))
         .layer(CookieManagerLayer::new())
-    //  .layer(TraceLayer::new_for_http()) // For Debug only
 }
 
-pub async fn admin(cookies: Cookies) -> Response<Body> {
-    let cookie_ver = JWToken::verify_cookie(&cookies, Utype::Admin).await;
-    if !cookie_ver.is_admin {
-        return Redirect::to("/admin/login").into_response();
-    }
+pub async fn admin() -> Response<Body> {
     let forms = AdminTemplate { name: "Admin" }; // instantiate your struct
     forms.into_response()
 }
@@ -62,12 +66,21 @@ pub async fn admin_login(cookies: Cookies, mut message: String) -> Response<Body
 }
 
 pub async fn admin_auth_middleware(request: Request, next: Next) -> Response<Body> {
+    let jar = CookieJar::from_headers(request.headers());
+    let cookie_unpacked = jar.get("Access_token_admin");
 
-    // We do authentication to requests
-    // Redirect to needed layer in case of an issue.
+    let cookie = match cookie_unpacked {
+        Some(_) => cookie_unpacked.expect("Failed to unwrap cookie jar"),
+        None => return Redirect::to("/admin/login").into_response(),
+    };
 
-    // Once auth is done we allow for the request to be processed
-    // Collect the response and make any necessary changes to it
-    let response = next.run(request).await;
-    return response;
+    if JWToken::validate_token(cookie.value().to_string())
+        .await
+        .is_admin
+    {
+        let response = next.run(request).await;
+        return response;
+    } else {
+        return Redirect::to("/admin/login").into_response();
+    }
 }

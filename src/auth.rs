@@ -59,7 +59,6 @@ impl Login {
         )
         .await;
         token.embed_to_cookie(cookie, Utype::User).await;
-
         Redirect::to("/").into_response()
     }
 
