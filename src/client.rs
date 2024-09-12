@@ -4,7 +4,15 @@ use crate::{
     DbPools,
 };
 use askama_axum::{IntoResponse, Template};
-use axum::{body::Body, http::Response, response::Redirect, routing::get, Router};
+use axum::{
+    body::Body,
+    extract::Request,
+    http::Response,
+    middleware::{self, Next},
+    response::Redirect,
+    routing::get,
+    Router,
+};
 use tower_cookies::{CookieManagerLayer, Cookies};
 
 #[derive(Template)]
@@ -28,8 +36,8 @@ pub struct Page404Template<'a> {
 pub fn client_router() -> Router<DbPools> {
     Router::new()
         .route("/", get(home))
-        .route("/login", get(login))
         .merge(route404())
+        .layer(middleware::from_fn(client_auth_middleware))
         .layer(CookieManagerLayer::new())
     //  .layer(TraceLayer::new_for_http()) // For Debug only
 }
@@ -62,4 +70,15 @@ pub async fn login(cookies: Cookies, mut message: String) -> Response<Body> {
     }
     let login = LoginTemplate { message: &message }; // instantiate your struct
     login.into_response()
+}
+
+pub async fn client_auth_middleware(request: Request, next: Next) -> Response<Body> {
+
+    // We do authentication to requests
+    // Redirect to needed layer in case of an issue.
+
+    // Once auth is done we allow for the request to be processed
+    // Collect the response and make any necessary changes to it
+    let response = next.run(request).await;
+    return response;
 }

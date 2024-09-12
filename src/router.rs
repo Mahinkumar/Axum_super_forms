@@ -1,12 +1,15 @@
 use askama_axum::IntoResponse;
 use axum::body::Body;
 use axum::http::Response;
+use axum::routing::get;
 use axum::Router;
 use axum::{response::Redirect, routing::post};
 use tower_cookies::CookieManagerLayer;
 use tower_http::services::ServeFile;
 
+use crate::admin::admin_login;
 use crate::auth::Login;
+use crate::client::login;
 use crate::DbPools;
 
 //use tower_http::trace::TraceLayer;
@@ -28,6 +31,8 @@ pub async fn to_home() -> Response<Body> {
 
 pub fn login_router() -> Router<DbPools> {
     Router::new()
+        .route("/login", get(login))
+        .route("/admin/login", get(admin_login))
         .route("/login", post(Login::user_handler))
         .route("/admin/login", post(Login::admin_handler))
         .layer(CookieManagerLayer::new())

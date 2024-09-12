@@ -3,7 +3,7 @@ use crate::{
     DbPools,
 };
 use askama_axum::{IntoResponse, Template};
-use axum::{body::Body, http::Response, response::Redirect, routing::get, Router};
+use axum::{body::Body, extract::Request, http::Response, middleware::{self, Next}, response::Redirect, routing::get, Router};
 use tower_cookies::{CookieManagerLayer, Cookies};
 
 #[derive(Template)]
@@ -33,7 +33,7 @@ pub struct AdminStatTemplate<'a> {
 pub fn admin_router() -> Router<DbPools> {
     Router::new()
         .route("/admin", get(admin))
-        .route("/admin/login", get(admin_login))
+        .layer(middleware::from_fn(admin_auth_middleware))
         .layer(CookieManagerLayer::new())
     //  .layer(TraceLayer::new_for_http()) // For Debug only
 }
@@ -59,4 +59,15 @@ pub async fn admin_login(cookies: Cookies, mut message: String) -> Response<Body
     }
     let admin_login = AdminLoginTemplate { message: &message }; // instantiate your struct
     admin_login.into_response()
+}
+
+pub async fn admin_auth_middleware(request: Request, next: Next) -> Response<Body> {
+
+    // We do authentication to requests
+    // Redirect to needed layer in case of an issue.
+
+    // Once auth is done we allow for the request to be processed
+    // Collect the response and make any necessary changes to it
+    let response = next.run(request).await;
+    return response;
 }
