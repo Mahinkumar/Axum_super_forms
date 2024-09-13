@@ -54,16 +54,20 @@ pub async fn retrieve_forms(
 
 pub async fn cache_form_input(
     uname: &String,
+    user_id: &String,
     form: &String,
     conn_pool: &Pool<RedisConnectionManager>,
     inputs: FormInputAll,
 ) {
-    let key = format!("{uname}_{form}_FormInputkey");
+    let key = format!("{uname}_{user_id}_{form}_FormInputkey");
     let mut redis_conn = conn_pool.get().await.expect("Unable to acquire connection");
     redis_conn
         .set::<&str, &FormInputAll, ()>(&key, &inputs)
         .await
         .unwrap();
+
+    //for test only
+    //offload_all_cached_form_inputs(&conn_pool, &get_db_conn_pool().await).await;
 }
 
 
@@ -77,8 +81,10 @@ pub async fn offload_all_cached_form_inputs(
     for key in keys {
         let cached_input: FormInputAll = redis_conn.get(&key).await.unwrap();
         for vals in cached_input.inputs{
-            sqlx::query("INSERT INTO form_data(username,fid,input_name,input_value) VALUES($1,$2,$3,$4) ON CONFLICT DO NOTHING;")
+            let uid: i32 = cached_input.user_id.parse().expect("Unable to parse user id. USER ID NOT AN INTEGER");
+            sqlx::query("INSERT INTO form_data(username,user_id,fid,input_name,input_value) VALUES($1,$2,$3,$4,$5) ON CONFLICT DO NOTHING;")
                 .bind(&cached_input.uname)
+                .bind(&uid)
                 .bind(&cached_input.fname)
                 .bind(vals.name)
                 .bind(vals.value)

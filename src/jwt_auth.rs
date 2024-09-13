@@ -28,7 +28,7 @@ pub struct Claims {
     #[serde(with = "jwt_numeric_date")]
     exp: OffsetDateTime,
     is_admin: bool,
-    id: String,
+    pub id: String,
 }
 
 pub struct CookieClaims {

@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS form_data
    (
       eid     SERIAL PRIMARY KEY,
       username    TEXT NOT NULL,
+      user_id     INTEGER NOT NULL REFERENCES forms_user(userid),
       fid       TEXT NOT NULL REFERENCES form_register(fid),
       input_name  TEXT NOT NULL,
       input_value TEXT NOT NULL
