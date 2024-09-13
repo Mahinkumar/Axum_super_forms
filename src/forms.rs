@@ -27,7 +27,7 @@ pub struct FormInput {
 #[derive(Debug, Deserialize, FromRedisValue, Serialize, ToRedisArgs)]
 pub struct FormInputAll {
     pub uname: String,
-    pub ename: String,
+    pub fname: String,
     pub inputs: Vec<FormInput>,
 }
 
@@ -108,7 +108,7 @@ pub async fn form_post_handler(
     let username = claims.claims.user;
     let inputs: FormInputAll = FormInputAll {
         uname: username.clone(),
-        ename: 1.to_string(),
+        fname: form_id.clone(),
         inputs: form_inputs,
     };
     cache_form_input(&username, &form_id, &db_pools.redis_pool, inputs).await;

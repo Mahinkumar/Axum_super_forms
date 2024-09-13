@@ -39,3 +39,12 @@ CREATE TABLE IF NOT EXISTS forms
      limited    BOOLEAN DEFAULT false,
      limit_val  INTEGER DEFAULT 0
   );  
+
+CREATE TABLE IF NOT EXISTS form_data
+   (
+      eid     SERIAL PRIMARY KEY,
+      username    TEXT NOT NULL,
+      fid       TEXT NOT NULL REFERENCES form_register(fid),
+      input_name  TEXT NOT NULL,
+      input_value TEXT NOT NULL
+   );

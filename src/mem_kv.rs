@@ -1,3 +1,4 @@
+
 use bb8_redis::bb8;
 use bb8_redis::bb8::Pool;
 use bb8_redis::redis::AsyncCommands;
@@ -5,6 +6,7 @@ use bb8_redis::RedisConnectionManager;
 //use bb8::{Pool, PooledConnection};
 
 use dotenvy::dotenv;
+use sqlx::Postgres;
 use std::env;
 
 use crate::{
@@ -63,3 +65,27 @@ pub async fn cache_form_input(
         .await
         .unwrap();
 }
+
+
+// Offload all stored forms from redis cache to database.
+pub async fn offload_all_cached_form_inputs(
+    conn_pool: &Pool<RedisConnectionManager>,
+    db_conn_pool: &sqlx::Pool<Postgres>
+){
+    let mut redis_conn = conn_pool.get().await.expect("Unable to acquire connection");
+    let keys: Vec<String> = redis_conn.keys("*_FormInputkey").await.unwrap();
+    for key in keys {
+        let cached_input: FormInputAll = redis_conn.get(&key).await.unwrap();
+        for vals in cached_input.inputs{
+            sqlx::query("INSERT INTO form_data(username,fid,input_name,input_value) VALUES($1,$2,$3,$4) ON CONFLICT DO NOTHING;")
+                .bind(&cached_input.uname)
+                .bind(&cached_input.fname)
+                .bind(vals.name)
+                .bind(vals.value)
+                .execute(db_conn_pool)
+                .await
+                .expect("Unable to create DEFAULT form in forms table");
+        }
+    }
+}
+
