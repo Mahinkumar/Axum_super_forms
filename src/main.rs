@@ -4,7 +4,7 @@ use sqlx::Postgres;
 use std::net::SocketAddr;
 use tokio::signal;
 use tokio::time::Duration;
-use tower::{limit::concurrency::ConcurrencyLimitLayer, Layer};
+use tower::Layer;
 use tower_http::normalize_path::{NormalizePath, NormalizePathLayer};
 use tower_http::timeout::TimeoutLayer;
 
@@ -12,6 +12,7 @@ pub mod admin;
 pub mod auth;
 pub mod client;
 pub mod db;
+pub mod server;
 pub mod forms;
 pub mod jwt_auth;
 pub mod mem_kv;
@@ -19,11 +20,9 @@ pub mod router;
 
 use admin::admin_router;
 use client::client_router;
-use db::ping_db;
-use db::{get_db_conn_pool, redis_load, setup_db};
+use db::get_db_conn_pool;
 use forms::form_router;
 use mem_kv::get_redis_pool;
-use mem_kv::ping;
 use router::general_router;
 use router::login_router;
 
@@ -41,57 +40,30 @@ const PORT_HOST: u16 = 8000;
 #[tokio::main]
 
 async fn main() {
-    // Use for Debug only!! Heavily reduces perfomance
-    // tracing_subscriber::registry()
-    //     .with(
-    //         tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
-    //             format!("{}=debug,tower_http=debug", env!("CARGO_CRATE_NAME")).into()
-    //         }),
-    //     )
-    //     .with(tracing_subscriber::fmt::layer())
-    //     .init();
 
-    let redis_pool = get_redis_pool().await;
-    let postgres_pool = get_db_conn_pool().await;
+    let (redis_pool,postgres_pool) = tokio::join!(get_redis_pool(),get_db_conn_pool());
 
     let database_pools = DbPools {
-        postgres_pool: postgres_pool.clone(),
-        redis_pool: redis_pool.clone(),
+        postgres_pool,
+        redis_pool,
     };
 
-    println!("=================================================================");
-    println!("Starting Axum Super forms Server.");
-    println!(
-        "Redis Server Status          : {}",
-        if ping(&redis_pool).await {
-            "Active"
-        } else {
-            "Unable to connect"
-        }
-    );
-    println!(
-        "Postgres Server Status       : {}",
-        if ping_db(&postgres_pool).await {
-            "Active"
-        } else {
-            "Unable to connect"
-        }
-    );
+    crate::server::initialize().await;
 
-    setup_db(&postgres_pool).await;
-    redis_load(&postgres_pool, &redis_pool).await;
     let axum_router = Router::new()
         .merge(login_router())
         .merge(admin_router())
         .merge(general_router())
         .merge(client_router())
         .merge(form_router())
-        .layer(ConcurrencyLimitLayer::new(512))
         .layer(TimeoutLayer::new(Duration::from_secs(5)));
 
     let app: Router = axum_router.with_state(database_pools);
     let app = NormalizePathLayer::trim_trailing_slash().layer(app);
-    tokio::join!(serve(app, PORT_HOST));
+    tokio::spawn(async move {
+        serve(app, PORT_HOST)
+    }).await.expect("Unable to Spawn Threads").await;
+
 }
 
 async fn serve(app: NormalizePath<Router>, port: u16) {
@@ -134,7 +106,7 @@ async fn graceful_shutdown_procedure() {
     println!();
     println!("Shutdown Initiated");
 
-    // We offload redis data to db here
 
+    // We offload redis data to db here
     println!("Performing a graceful shutdown");
 }
