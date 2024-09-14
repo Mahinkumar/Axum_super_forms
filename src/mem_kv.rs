@@ -1,4 +1,3 @@
-
 use bb8_redis::bb8;
 use bb8_redis::bb8::Pool;
 use bb8_redis::redis::AsyncCommands;
@@ -59,7 +58,11 @@ pub async fn cache_form_input(
     conn_pool: &Pool<RedisConnectionManager>,
     inputs: FormInputAll,
 ) {
-    let time = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_micros().to_string();
+    let time = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_micros()
+        .to_string();
     let key = format!("{user_id}_{form}_{time}_FormIK");
     let mut redis_conn = conn_pool.get().await.expect("Unable to acquire connection");
     redis_conn
@@ -71,18 +74,20 @@ pub async fn cache_form_input(
     //offload_all_cached_form_inputs(&conn_pool, &get_db_conn_pool().await).await;
 }
 
-
 // Offload all stored forms from redis cache to database.
 pub async fn offload_all_cached_form_inputs(
     conn_pool: &Pool<RedisConnectionManager>,
-    db_conn_pool: &sqlx::Pool<Postgres>
-){
+    db_conn_pool: &sqlx::Pool<Postgres>,
+) {
     let mut redis_conn = conn_pool.get().await.expect("Unable to acquire connection");
     let keys: Vec<String> = redis_conn.keys("*_FormIK").await.unwrap();
     for key in keys {
         let cached_input: FormInputAll = redis_conn.get(&key).await.unwrap();
-        for vals in cached_input.inputs{
-            let uid: i32 = cached_input.user_id.parse().expect("Unable to parse user id. USER ID NOT AN INTEGER");
+        for vals in cached_input.inputs {
+            let uid: i32 = cached_input
+                .user_id
+                .parse()
+                .expect("Unable to parse user id. USER ID NOT AN INTEGER");
             sqlx::query("INSERT INTO form_data(username,user_id,fid,input_name,input_value) VALUES($1,$2,$3,$4,$5) ON CONFLICT DO NOTHING;")
                 .bind(&cached_input.uname)
                 .bind(&uid)
@@ -91,9 +96,11 @@ pub async fn offload_all_cached_form_inputs(
                 .bind(vals.value)
                 .execute(db_conn_pool)
                 .await
-                .expect("Unable to create DEFAULT form in forms table");
+                .expect("Unable to load data in form inputs table");
         }
-        redis_conn.del::<&str,()>(&key).await.expect("Unable to clear key after offloading to db");
+        redis_conn
+            .del::<&str, ()>(&key)
+            .await
+            .expect("Unable to clear key after offloading to db");
     }
 }
-
