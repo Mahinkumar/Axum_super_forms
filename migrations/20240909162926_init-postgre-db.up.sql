@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS form_register
 
 CREATE TABLE IF NOT EXISTS forms
   (
-     elid       INTEGER PRIMARY KEY,
+     elid       SERIAL PRIMARY KEY,
      fid        TEXT NOT NULL REFERENCES form_register(fid),
      typ        TEXT NOT NULL,
      req        BOOLEAN DEFAULT false,
