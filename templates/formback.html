@@ -1,0 +1,15 @@
+
+{% extends "nav.html" %}
+
+{% block title %}Form {{id}}{% endblock %}
+
+
+{% block content %}
+    <section class="bg-gray-100 text-gray-700 w-screen h-[90svh] flex flex-col justify-center">
+        <div class="p-8 space-y-12 flex flex-col justify-center items-center">
+            <h2 class="text-4xl font-bold w-screen text-center h-8">{{message1}}</h2>
+            <div class="justify-center space-x-6 w-full flex text-xl text-blue-700 underline"><a href="/login">Login</a> <a href="/">Home</a> <a href="/forms">Forms</a></div>
+        </div>
+    </section>
+  {% call super() %}
+{% endblock %}

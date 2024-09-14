@@ -7,11 +7,7 @@ use crate::{
 use askama::Template;
 use askama_axum::IntoResponse;
 use axum::{
-    body::Body,
-    extract::{Path, State},
-    http::Response,
-    routing::get,
-    Router,
+    body::Body, extract::{Path, State}, http::Response, routing::get, Router
 };
 use bb8_redis::redis;
 use redis_macros::{FromRedisValue, ToRedisArgs};
@@ -47,12 +43,19 @@ pub struct FormsTemplate<'a> {
     el: Vec<FormField>,
 }
 
+#[derive(Template)]
+#[template(path = "formback.html")]
+pub struct FormBackTemplate<'a> {
+    message1: &'a str,
+}
+
 pub fn form_router() -> Router<DbPools> {
     Router::new()
         .route("/forms/:id", get(forms).post(form_post_handler))
         .layer(CookieManagerLayer::new())
     //  .layer(TraceLayer::new_for_http()) // For Debug only
 }
+
 
 pub async fn forms(
     State(db_pools): State<DbPools>,
@@ -82,7 +85,7 @@ pub async fn form_post_handler(
     cookies: Cookies,
     Path(form_id): Path<String>,
     body: String,
-) {
+)-> Response<Body>{
     let cookie_ver = JWToken::verify_cookie(&cookies, Utype::User).await;
     if !cookie_ver.is_user {
         println!("Someone not a user tried posting to the form. {form_id}")
@@ -113,5 +116,11 @@ pub async fn form_post_handler(
         fname: form_id.clone(),
         inputs: form_inputs,
     };
+
     cache_form_input(&username, &claims.claims.id ,&form_id, &db_pools.redis_pool, inputs).await;
+
+    let forms = FormBackTemplate {
+        message1: "Form Submission Success",
+    }; // instantiate your struct
+    forms.into_response()
 }
