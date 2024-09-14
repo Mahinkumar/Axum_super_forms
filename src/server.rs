@@ -37,5 +37,4 @@ pub async fn initialize() {
 pub async fn shutdown_commits() {
     let (redis_pool, postgres_pool) = (get_redis_pool().await, get_db_conn_pool().await);
     offload_all_cached_form_inputs(&redis_pool, &postgres_pool).await;
-    println!("Offloaded all cached form inputs to database.");
 }
