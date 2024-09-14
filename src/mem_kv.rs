@@ -4,6 +4,7 @@ use bb8_redis::bb8::Pool;
 use bb8_redis::redis::AsyncCommands;
 use bb8_redis::RedisConnectionManager;
 //use bb8::{Pool, PooledConnection};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use dotenvy::dotenv;
 use sqlx::Postgres;
@@ -53,13 +54,13 @@ pub async fn retrieve_forms(
 }
 
 pub async fn cache_form_input(
-    uname: &String,
     user_id: &String,
     form: &String,
     conn_pool: &Pool<RedisConnectionManager>,
     inputs: FormInputAll,
 ) {
-    let key = format!("{uname}_{user_id}_{form}_FormInputkey");
+    let time = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_micros().to_string();
+    let key = format!("{user_id}_{form}_{time}_FormIK");
     let mut redis_conn = conn_pool.get().await.expect("Unable to acquire connection");
     redis_conn
         .set::<&str, &FormInputAll, ()>(&key, &inputs)
@@ -77,7 +78,7 @@ pub async fn offload_all_cached_form_inputs(
     db_conn_pool: &sqlx::Pool<Postgres>
 ){
     let mut redis_conn = conn_pool.get().await.expect("Unable to acquire connection");
-    let keys: Vec<String> = redis_conn.keys("*_FormInputkey").await.unwrap();
+    let keys: Vec<String> = redis_conn.keys("*_FormIK").await.unwrap();
     for key in keys {
         let cached_input: FormInputAll = redis_conn.get(&key).await.unwrap();
         for vals in cached_input.inputs{
@@ -92,6 +93,7 @@ pub async fn offload_all_cached_form_inputs(
                 .await
                 .expect("Unable to create DEFAULT form in forms table");
         }
+        redis_conn.del::<&str,()>(&key).await.expect("Unable to clear key after offloading to db");
     }
 }
 

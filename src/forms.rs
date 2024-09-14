@@ -117,7 +117,8 @@ pub async fn form_post_handler(
         inputs: form_inputs,
     };
 
-    cache_form_input(&username, &claims.claims.id ,&form_id, &db_pools.redis_pool, inputs).await;
+
+    cache_form_input(&claims.claims.id ,&form_id, &db_pools.redis_pool, inputs).await;
 
     let forms = FormBackTemplate {
         message1: "Form Submission Success",
