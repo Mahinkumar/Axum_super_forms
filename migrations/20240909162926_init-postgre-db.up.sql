@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS forms_user
 
 CREATE TABLE IF NOT EXISTS user_group
   (
-     uqid   INTEGER PRIMARY KEY,
+     uqid   SERIAL PRIMARY KEY,
      userid INTEGER REFERENCES forms_user(userid),
      gid    INTEGER NOT NULL DEFAULT 1
   );

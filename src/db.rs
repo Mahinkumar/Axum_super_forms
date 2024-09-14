@@ -66,7 +66,7 @@ pub async fn setup_db(conn: &sqlx::Pool<Postgres>) {
         .await
         .expect("Unable to create DEFAULT ADMIN in forms_user table");
 
-    sqlx::query("INSERT INTO user_group(uqid,userid,gid) VALUES(0,0,1) ON CONFLICT DO NOTHING;")
+    sqlx::query("INSERT INTO user_group(userid,gid) VALUES(0,1) ON CONFLICT DO NOTHING;")
         .execute(&mut *transaction)
         .await
         .expect("Unable to create DEFAULT user_group in forms_user table");
