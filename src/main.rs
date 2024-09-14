@@ -1,5 +1,6 @@
 use axum::{extract::Request, Router, ServiceExt};
 use bb8_redis::{bb8::Pool, RedisConnectionManager};
+use server::shutdown_commits;
 use sqlx::Postgres;
 use std::net::SocketAddr;
 use tokio::signal;
@@ -12,11 +13,11 @@ pub mod admin;
 pub mod auth;
 pub mod client;
 pub mod db;
-pub mod server;
 pub mod forms;
 pub mod jwt_auth;
 pub mod mem_kv;
 pub mod router;
+pub mod server;
 
 use admin::admin_router;
 use client::client_router;
@@ -40,8 +41,7 @@ const PORT_HOST: u16 = 8000;
 #[tokio::main]
 
 async fn main() {
-
-    let (redis_pool,postgres_pool) = tokio::join!(get_redis_pool(),get_db_conn_pool());
+    let (redis_pool, postgres_pool) = tokio::join!(get_redis_pool(), get_db_conn_pool());
 
     let database_pools = DbPools {
         postgres_pool,
@@ -60,10 +60,10 @@ async fn main() {
 
     let app: Router = axum_router.with_state(database_pools);
     let app = NormalizePathLayer::trim_trailing_slash().layer(app);
-    tokio::spawn(async move {
-        serve(app, PORT_HOST)
-    }).await.expect("Unable to Spawn Threads").await;
-
+    tokio::spawn(async move { serve(app, PORT_HOST) })
+        .await
+        .expect("Unable to Spawn Threads")
+        .await;
 }
 
 async fn serve(app: NormalizePath<Router>, port: u16) {
@@ -106,7 +106,7 @@ async fn graceful_shutdown_procedure() {
     println!();
     println!("Shutdown Initiated");
 
-
+    shutdown_commits().await;
     // We offload redis data to db here
     println!("Performing a graceful shutdown");
 }
