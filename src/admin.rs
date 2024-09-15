@@ -1,6 +1,5 @@
 use crate::{
-    jwt_auth::{JWToken, Utype},
-    DbPools,
+    forms::FormField, jwt_auth::{JWToken, Utype}, DbPools
 };
 use askama_axum::{IntoResponse, Template};
 use axum::{
@@ -39,9 +38,18 @@ pub struct AdminStatTemplate<'a> {
     id: &'a str,
 }
 
+#[derive(Template)]
+#[template(path = "adminnewform.html")]
+pub struct AdminnewformTemplate<'a> {
+    id: &'a str,
+    el: Vec<FormField>,
+}
+
+
 pub fn admin_router() -> Router<DbPools> {
     Router::new()
         .route("/admin", get(admin))
+        .route("/admin/form/new", get(admin_new_form))
         .layer(middleware::from_fn(admin_auth_middleware))
         .layer(CookieManagerLayer::new())
 }
@@ -83,4 +91,9 @@ pub async fn admin_auth_middleware(request: Request, next: Next) -> Response<Bod
     } else {
         return Redirect::to("/admin/login").into_response();
     }
+}
+
+pub async fn admin_new_form()-> Response<Body>{
+    let formnew = AdminnewformTemplate{ el: vec![], id: "None"};
+    formnew.into_response()
 }

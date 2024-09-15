@@ -1,0 +1,32 @@
+{% extends "admin_nav.html" %}
+
+{% block title %}Form {{id}}{% endblock %}
+
+
+{% block content %}
+    <section class="bg-gray-100 text-gray-700 w-screen min-h-screen flex flex-col items-center">
+        <div class="flex flex-col w-[60%] items-center justify-center space-y-12">
+            <hr class="border-t-4 border-gray-800">
+            <div class="text-3xl pt-12">Form Details</div>
+            <label class="block w-full">
+                <span class="text-gray-700">Form Name</span>
+                <input type="text" class="mt-1 block w-full form-input" placeholder="Form Name" name="form_name"/>
+            </label>
+            <label class="w-full flex flex-col">
+                <span class="text-gray-700">Form Description</span>
+                <textarea name="form_description" cols="40" rows="5" class="form-textarea w-full"></textarea>
+            </label>
+            <label class="block w-full">
+                <span class="text-gray-700">Start and End Time</span>
+                <input type="datetime-local" class="mt-1 block w-full form-input" placeholder="Start Time" name="form_name"/>
+                <input type="datetime-local" class="mt-1 block w-full form-input" placeholder="End Time" name="form_name"/>
+            </label>
+            <label class="w-full flex flex-col">
+                <span class="text-gray-700">Form Group Number</span>
+                <input name="Formsgroup" class="form-input w-full" type="number">
+            </label>
+            <hr>
+        </div>
+    </section>
+  {% call super() %}
+{% endblock %}
