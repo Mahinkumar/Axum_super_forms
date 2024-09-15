@@ -5,7 +5,7 @@
 
 {% block content %}
     <section class="bg-gray-100 text-gray-700 w-screen min-h-screen flex flex-col items-center">
-        <div class="flex flex-col w-[60%] items-center justify-center space-y-12">
+        <div class="flex flex-col w-[60%] items-center justify-center space-y-12 p-6">
             <hr class="border-t-4 border-gray-800">
             <div class="text-3xl pt-12">Form Details</div>
             <label class="block w-full">
@@ -26,6 +26,16 @@
                 <input name="Formsgroup" class="form-input w-full" type="number">
             </label>
             <hr>
+            {% for els in el %}
+            <label class="block">
+              <span class="text-gray-700">{{els.fields.question}}</span>
+              <input type={{ els.fields.typ }} class="mt-1 block w-full form-input" placeholder="{{els.fields.fname}}" name="{{els.fields.fname}}" value="{{els.value}}"/>
+            </label>
+            {% endfor %}
+            <div class="flex space-x-4 justify-evenly w-full mb-12">
+                <button type="submit" class="w-80 h-12 bg-black text-white">Add +</button>
+                <button type="submit" class="w-80 h-12 bg-black text-white">Finish</button>
+            </div>
         </div>
     </section>
   {% call super() %}

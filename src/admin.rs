@@ -1,6 +1,12 @@
 use crate::{
     forms::FormField, jwt_auth::{JWToken, Utype}, DbPools
 };
+
+struct FormFilled{
+    value: String,
+    fields: FormField,
+}
+
 use askama_axum::{IntoResponse, Template};
 use axum::{
     body::Body,
@@ -42,7 +48,7 @@ pub struct AdminStatTemplate<'a> {
 #[template(path = "adminnewform.html")]
 pub struct AdminnewformTemplate<'a> {
     id: &'a str,
-    el: Vec<FormField>,
+    el: Vec<FormFilled>,
 }
 
 
@@ -94,6 +100,7 @@ pub async fn admin_auth_middleware(request: Request, next: Next) -> Response<Bod
 }
 
 pub async fn admin_new_form()-> Response<Body>{
-    let formnew = AdminnewformTemplate{ el: vec![], id: "None"};
+    let els: Vec<FormFilled> = vec![];
+    let formnew = AdminnewformTemplate{ el: els, id: "None"};
     formnew.into_response()
 }
