@@ -46,8 +46,7 @@ pub struct AdminStatTemplate<'a> {
 
 #[derive(Template)]
 #[template(path = "adminnewform.html")]
-pub struct AdminnewformTemplate<'a> {
-    id: &'a str,
+pub struct AdminnewformTemplate{
     el: Vec<FormFilled>,
 }
 
@@ -101,6 +100,6 @@ pub async fn admin_auth_middleware(request: Request, next: Next) -> Response<Bod
 
 pub async fn admin_new_form()-> Response<Body>{
     let els: Vec<FormFilled> = vec![];
-    let formnew = AdminnewformTemplate{ el: els, id: "None"};
+    let formnew = AdminnewformTemplate{ el: els };
     formnew.into_response()
 }

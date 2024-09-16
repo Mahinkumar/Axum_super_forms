@@ -60,10 +60,9 @@ async fn main() {
 
     let app: Router = axum_router.with_state(database_pools);
     let app = NormalizePathLayer::trim_trailing_slash().layer(app);
-    tokio::spawn(async move { serve(app, PORT_HOST) })
+    tokio::spawn(async move { serve(app, PORT_HOST).await })
         .await
         .expect("Unable to Spawn Threads")
-        .await;
 }
 
 async fn serve(app: NormalizePath<Router>, port: u16) {
