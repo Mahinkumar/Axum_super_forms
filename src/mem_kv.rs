@@ -91,7 +91,7 @@ pub async fn offload_all_cached_form_inputs(
                 .expect("Unable to parse user id. USER ID NOT AN INTEGER");
             sqlx::query("INSERT INTO form_data(username,user_id,fid,input_name,input_value) VALUES($1,$2,$3,$4,$5) ON CONFLICT DO NOTHING;")
                 .bind(&cached_input.uname)
-                .bind(&uid)
+                .bind(uid)
                 .bind(&cached_input.fname)
                 .bind(vals.name)
                 .bind(vals.value)

@@ -82,8 +82,8 @@ pub async fn client_auth_middleware(request: Request, next: Next) -> Response<Bo
         .is_user
     {
         let response = next.run(request).await;
-        return response;
+        response
     } else {
-        return Redirect::to("/login").into_response();
+        Redirect::to("/login").into_response()
     }
 }

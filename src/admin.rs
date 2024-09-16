@@ -92,9 +92,9 @@ pub async fn admin_auth_middleware(request: Request, next: Next) -> Response<Bod
         .is_admin
     {
         let response = next.run(request).await;
-        return response;
+        response
     } else {
-        return Redirect::to("/admin/login").into_response();
+        Redirect::to("/admin/login").into_response()
     }
 }
 
