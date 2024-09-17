@@ -21,31 +21,31 @@ use axum_extra::extract::cookie::CookieJar;
 use tower_cookies::{CookieManagerLayer, Cookies};
 
 #[derive(Template)]
-#[template(path = "adminLogin.html")]
+#[template(path = "admin/adminLogin.html")]
 pub struct AdminLoginTemplate<'a> {
     message: &'a str,
 }
 
 #[derive(Template)]
-#[template(path = "admin.html")]
+#[template(path = "admin/admin.html")]
 pub struct AdminTemplate<'a> {
     name: &'a str,
 }
 
 #[derive(Template)]
-#[template(path = "adminForm.html")]
+#[template(path = "admin/adminForm.html")]
 pub struct AdminFormTemplate<'a> {
     id: &'a str,
 }
 
 #[derive(Template)]
-#[template(path = "adminstat.html")]
+#[template(path = "admin/adminstat.html")]
 pub struct AdminStatTemplate<'a> {
     id: &'a str,
 }
 
 #[derive(Template)]
-#[template(path = "adminnewform.html")]
+#[template(path = "admin/adminnewform.html")]
 pub struct AdminnewformTemplate{
     el: Vec<FormFilled>,
 }

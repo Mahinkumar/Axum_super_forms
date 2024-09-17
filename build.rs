@@ -5,7 +5,6 @@ fn main() {
     // trigger recompilation when a new migration is added
     println!("cargo:rerun-if-changed=migrations");
     println!("cargo:rerun-if-changed=templates");
-
     //Perform build process for npm
     let output = Command::new("npm")
         .arg("run")

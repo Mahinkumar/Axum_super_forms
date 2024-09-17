@@ -16,13 +16,13 @@ use axum_extra::extract::CookieJar;
 use tower_cookies::{CookieManagerLayer, Cookies};
 
 #[derive(Template)]
-#[template(path = "home.html")]
+#[template(path = "user/home.html")]
 pub struct HomeTemplate<'a> {
     name: &'a str,
 }
 
 #[derive(Template)]
-#[template(path = "login.html")]
+#[template(path = "user/login.html")]
 pub struct LoginTemplate<'a> {
     message: &'a str,
 }
