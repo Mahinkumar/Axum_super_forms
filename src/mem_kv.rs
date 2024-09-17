@@ -81,24 +81,34 @@ pub async fn offload_all_cached_form_inputs(
 ) {
     let mut redis_conn = conn_pool.get().await.expect("Unable to acquire connection");
     let keys: Vec<String> = redis_conn.keys("*_FormIK").await.unwrap();
+    
     let mut n: u32 = 0;
     for key in keys {
-        let cached_input: FormInputAll = redis_conn.get(&key).await.unwrap();
-        for vals in cached_input.inputs {
-            let uid: i32 = cached_input
+        let cached_input: FormInputAll = redis_conn.get(&key).await.expect("Unable to get Keys");
+        let uid: i32 = cached_input
                 .user_id
                 .parse()
                 .expect("Unable to parse user id. USER ID NOT AN INTEGER");
-            sqlx::query("INSERT INTO form_data(username,user_id,fid,input_name,input_value) VALUES($1,$2,$3,$4,$5) ON CONFLICT DO NOTHING;")
-                .bind(&cached_input.uname)
+        let uname = cached_input.uname;
+        let fname = cached_input.fname;
+
+        let mut sql_batch = vec![];
+
+        for vals in cached_input.inputs {
+            sql_batch.push(sqlx::query("INSERT INTO form_data(username,user_id,fid,input_name,input_value) VALUES($1,$2,$3,$4,$5) ON CONFLICT DO NOTHING;")
+                .bind(&uname)
                 .bind(uid)
-                .bind(&cached_input.fname)
+                .bind(&fname)
                 .bind(vals.name)
-                .bind(vals.value)
-                .execute(db_conn_pool)
-                .await
-                .expect("Unable to load data in form inputs table");
+                .bind(vals.value));
         }
+
+        let mut tx = db_conn_pool.begin().await.expect("Unable to acquire transaction pool");
+        for sql in sql_batch {
+            sql.execute( &mut *tx).await.expect("Unable to complete transaction.");
+        }
+
+        tx.commit().await.expect("Unable to commit Tranasaction");
         redis_conn
             .del::<&str, ()>(&key)
             .await
