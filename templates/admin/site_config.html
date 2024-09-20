@@ -1,0 +1,10 @@
+{% extends "admin_nav.html" %}
+
+{% block title %}Form {% endblock %}
+
+{% block content %}
+    <section class="w-screen min-h-screen">
+        <div class="p-5 text-3xl">Website configuration page for {{name}}</div>
+    </section>
+  {% call super() %}
+{% endblock %}
