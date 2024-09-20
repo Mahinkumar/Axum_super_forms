@@ -33,6 +33,12 @@ pub struct AdminTemplate<'a> {
 }
 
 #[derive(Template)]
+#[template(path = "admin/site_config.html")]
+pub struct ConfigTemplate<'a> {
+    name: &'a str,
+}
+
+#[derive(Template)]
 #[template(path = "admin/adminForm.html")]
 pub struct AdminFormTemplate<'a> {
     id: &'a str,
@@ -55,6 +61,7 @@ pub fn admin_router() -> Router<DbPools> {
     Router::new()
         .route("/admin", get(admin))
         .route("/admin/form/new", get(admin_new_form))
+        .route("/admin/siteconfig", get(siteconfig))
         .layer(middleware::from_fn(admin_auth_middleware))
         .layer(CookieManagerLayer::new())
 }
@@ -102,4 +109,9 @@ pub async fn admin_new_form()-> Response<Body>{
     let els: Vec<FormFilled> = vec![];
     let formnew = AdminnewformTemplate{ el: els };
     formnew.into_response()
+}
+
+pub async fn siteconfig()->Response<Body>{
+    let config = ConfigTemplate{ name: "Admin"};
+    config.into_response()
 }
