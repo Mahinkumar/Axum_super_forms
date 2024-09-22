@@ -338,6 +338,7 @@ dependencies = [
  "axum-util",
  "bb8 0.7.1",
  "bb8-redis",
+ "console",
  "dotenvy",
  "indicatif",
  "jsonwebtoken",

@@ -8,6 +8,7 @@ use tokio::time::Duration;
 use tower::Layer;
 use tower_http::normalize_path::{NormalizePath, NormalizePathLayer};
 use tower_http::timeout::TimeoutLayer;
+use console::style;
 
 pub mod admin;
 pub mod auth;
@@ -67,8 +68,10 @@ async fn main() {
 }
 
 async fn serve(app: NormalizePath<Router>, port: u16) {
-    println!("Serving on address           : http://127.0.0.1:{port}");
-    println!("=================================================================");
+    println!("--------------------------------------------------------------------");
+    let url = format!("{}{}",style("http://127.0.0.1:").cyan().underlined(),style(port).cyan().underlined());
+    println!("Serving on address             : {url}");
+    println!("====================================================================");
     let addr = SocketAddr::from((ADDR, port));
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, ServiceExt::<Request>::into_make_service(app))

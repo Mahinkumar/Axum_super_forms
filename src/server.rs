@@ -1,6 +1,7 @@
 // Server maintenance and check code here.
 use indicatif::ProgressBar;
 use std::time::Duration;
+use console::style;
 
 use crate::{
     db::{get_db_conn_pool, ping_db, redis_load, setup_db},
@@ -9,18 +10,17 @@ use crate::{
 
 async fn check_network() {
     //Checks connection with Redis
-    println!("Performing Network Checks:");
+    println!("{}",style("Performing Network Checks ").bold().blue());
     {
-        
         let bar = ProgressBar::new_spinner();
         bar.enable_steady_tick(Duration::from_millis(100));
         bar.set_message("Connecting to Redis..");
         let redis_pool = get_redis_pool().await;
         ping(&redis_pool).await;
-        bar.set_message("=> Redis DB Active");
+        let status = format!("Redis Database status        : {}",style("Active").green());
+        bar.set_message(status);
         bar.finish();
     }
-
     //Checks connection with Postgres
     {
         let bar = ProgressBar::new_spinner();
@@ -28,15 +28,20 @@ async fn check_network() {
         bar.set_message("Connecting to Postgres..");
         let postgres_pool = get_db_conn_pool().await;
         ping_db(&postgres_pool).await;
-        bar.set_message("=> Postgres DB Active");
+        let status = format!("Postgres Database status     : {}",style("Active").green());
+        bar.set_message(status);
         bar.finish();
     }
 }
 
 pub async fn initialize() {
-    println!("=================================================================");
-    println!("Starting Axum Super forms Server.");
+    println!("====================================================================");
+    println!("{}",style("Starting Axum Super forms Server.").bold());
+    println!("{}",style("https://github.com/Mahinkumar/axum_super_forms").blink_fast());
+    println!("--------------------------------------------------------------------");
     check_network().await;
+     
+    println!("{}",style("Initializing Redis Cache").bold().blue());
     let (redis_pool, postgres_pool) = (get_redis_pool().await, get_db_conn_pool().await);
     setup_db(&postgres_pool).await;
     redis_load(&postgres_pool, &redis_pool).await;

@@ -123,7 +123,7 @@ pub async fn redis_load(conn: &sqlx::Pool<Postgres>, redis_pool: &Pool<RedisConn
         .expect("Unable to acquire connection for redis");
 
     // Fetches user data from db and writes to redis
-    print!("Setting up Redis User cache  : ");
+    print!("  Setting up Redis User cache  : ");
     let mut ucount = 0;
     let user_data_from_db =
         sqlx::query_as::<_, (i32, String, String, String)>("SELECT * FROM forms_user")
@@ -150,7 +150,7 @@ pub async fn redis_load(conn: &sqlx::Pool<Postgres>, redis_pool: &Pool<RedisConn
     println!("Loaded {ucount} user(s) data into Memory.");
 
     // Fetches forms data from db and writes to redis
-    print!("Setting up Redis Forms cache : ");
+    print!("  Setting up Redis Forms cache : ");
     let mut fcount = 0;
     let form_register_vals_from_db =
         sqlx::query_as::<_, (String, i32)>("SELECT fid,gid FROM form_register")
