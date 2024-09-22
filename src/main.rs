@@ -41,6 +41,8 @@ const PORT_HOST: u16 = 8000;
 #[tokio::main]
 
 async fn main() {
+    crate::server::initialize().await;
+
     let (redis_pool, postgres_pool) = tokio::join!(get_redis_pool(), get_db_conn_pool());
 
     let database_pools = DbPools {
@@ -48,7 +50,6 @@ async fn main() {
         redis_pool,
     };
 
-    crate::server::initialize().await;
 
     let axum_router = Router::new()
         .merge(login_router())
