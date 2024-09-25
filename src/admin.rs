@@ -1,5 +1,5 @@
 use crate::{
-    forms::FormField, jwt_auth::{JWToken, Utype}, DbPools
+    forms::{FormField, FormInput}, jwt_auth::{JWToken, Utype}, DbPools
 };
 
 struct FormFilled{
@@ -10,7 +10,7 @@ struct FormFilled{
 use askama_axum::{IntoResponse, Template};
 use axum::{
     body::Body,
-    extract::Request,
+    extract::{Request, State},
     http::Response,
     middleware::{self, Next},
     response::Redirect,
@@ -59,8 +59,8 @@ pub struct AdminnewformTemplate{
 
 pub fn admin_router() -> Router<DbPools> {
     Router::new()
+        .route("/admin/form/new", get(admin_new_form).post(admin_new_form_post))
         .route("/admin", get(admin))
-        .route("/admin/form/new", get(admin_new_form))
         .route("/admin/siteconfig", get(siteconfig))
         .layer(middleware::from_fn(admin_auth_middleware))
         .layer(CookieManagerLayer::new())
@@ -114,4 +114,29 @@ pub async fn admin_new_form()-> Response<Body>{
 pub async fn siteconfig()->Response<Body>{
     let config = ConfigTemplate{ name: "Admin"};
     config.into_response()
+}
+
+pub async fn admin_new_form_post(
+    State(_db_pools): State<DbPools>,
+    body: String) -> Response<Body>{
+    let v: Vec<&str> = body.rsplit('&').collect();
+    let mut form_inputs: Vec<FormInput> = vec![];
+    for i in v {
+        let kv = i.rsplit_once("=").expect("Unable to split");
+        if kv.0 == "action"{
+            if kv.1 == "Add"{
+                println!("Form New | Add command Recieved");
+            }else if kv.1 == "Finish"{
+                println!("Form New | Finish command Recieved");
+            }
+        }
+        let item: FormInput = FormInput {
+            name: kv.0.to_string(),
+            value: kv.1.to_string(),
+        };
+        form_inputs.push(item);
+    }
+    // We will redraw the forms for every add. 
+    // Redirect to admin is only for finish command.
+    Redirect::to("/admin").into_response()
 }
