@@ -15,6 +15,7 @@ under high loads.
 8. Form history and record support for users and admin
 9. Site customization support
 10. Email Support
+11. Form Previews
 
 ## Architecture
 <img width="700" alt="Axum Super Forms Architecture" src="https://github.com/user-attachments/assets/f2026e3c-75e4-42cf-adf9-7faadc9d17a0">
