@@ -10,7 +10,7 @@ use crate::{
 
 async fn check_network() {
     //Checks connection with Redis
-    println!("{}",style("Performing Network Checks ").bold().blue());
+    println!("{}",style("Performing Network Checks ").bold().cyan());
     {
         let bar = ProgressBar::new_spinner();
         bar.enable_steady_tick(Duration::from_millis(100));
@@ -37,11 +37,11 @@ async fn check_network() {
 pub async fn initialize() {
     println!("====================================================================");
     println!("{}",style("Starting Axum Super forms Server.").bold());
-    println!("{}",style("https://github.com/Mahinkumar/axum_super_forms").blink_fast());
+    println!("{}",style("https://github.com/Mahinkumar/axum_super_forms").dim());
     println!("--------------------------------------------------------------------");
     check_network().await;
      
-    println!("{}",style("Initializing Redis Cache").bold().blue());
+    println!("{}",style("Initializing Redis Cache").bold().cyan());
     let (redis_pool, postgres_pool) = (get_redis_pool().await, get_db_conn_pool().await);
     setup_db(&postgres_pool).await;
     redis_load(&postgres_pool, &redis_pool).await;

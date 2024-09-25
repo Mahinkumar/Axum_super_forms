@@ -12,10 +12,10 @@ under high loads.
 3. Authentication support for admins and users
 5. Fully customizable forms
 6. Dynamic form inputs (Updates in realtime)
-8. Form history and record support for users and admin
-9. Site customization support
-10. Email Support
-11. Form Previews
+7. Form history and record support for users and admin
+8. Site customization support
+9. Email Support
+10. Form Previews
 
 ## Architecture
 <img width="700" alt="Axum Super Forms Architecture" src="https://github.com/user-attachments/assets/f2026e3c-75e4-42cf-adf9-7faadc9d17a0">
