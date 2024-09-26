@@ -71,12 +71,12 @@ pub async fn setup_db(conn: &sqlx::Pool<Postgres>) {
         .await
         .expect("Unable to create DEFAULT user_group in forms_user table");
 
-    sqlx::query("INSERT INTO form_register(fid,gid,form_name) VALUES('0d00',0,'Test_Form') ON CONFLICT DO NOTHING;")
+    sqlx::query("INSERT INTO form_register(fid,gid,form_name) VALUES('0000',0,'Test_Form') ON CONFLICT DO NOTHING;")
         .execute(&mut *transaction)
         .await
         .expect("Unable to create DEFAULT form in forms table");
 
-    sqlx::query("INSERT INTO forms(elid,fid,typ,req,field_name,question) VALUES(0,'0d00','text',true,'name','What is your name?'),(1,'0d00','email',true,'email','What is your Email?') ON CONFLICT DO NOTHING;")
+    sqlx::query("INSERT INTO forms(elid,fid,typ,req,field_name,question) VALUES(0,'0000','text',true,'name','What is your name?'),(1,'0000','email',true,'email','What is your Email?') ON CONFLICT DO NOTHING;")
         .execute(&mut *transaction)
         .await
         .expect("Unable to create DEFAULT form entries in forms table");

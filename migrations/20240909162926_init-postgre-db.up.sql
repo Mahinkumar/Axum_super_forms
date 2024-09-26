@@ -25,7 +25,11 @@ CREATE TABLE IF NOT EXISTS form_register
   (
      fid       TEXT PRIMARY KEY,
      gid       INTEGER DEFAULT 1,
-     form_name TEXT
+     form_name TEXT,
+     form_description TEXT DEFAULT 'No Description Provided',
+     startdate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+     enddate TIMESTAMP DEFAULT NULL,
+     dynamic BOOLEAN DEFAULT false
   );
 
 CREATE TABLE IF NOT EXISTS forms
