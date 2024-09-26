@@ -1,0 +1,14 @@
+{% extends "admin_nav.html" %}
+
+{% block title %}Form {{id}}{% endblock %}
+
+
+{% block content %}
+    <section class="bg-gray-100 text-gray-700 w-screen min-h-screen flex flex-col items-center">
+        <form class="flex flex-col w-[60%] items-center justify-center space-y-12 p-6" method="post">
+            <hr class="border-t-4 border-gray-800">
+            <div class="text-3xl pt-12">Form Edit</div>
+        </form>
+    </section>
+  {% call super() %}
+{% endblock %}

@@ -56,10 +56,17 @@ pub struct AdminnewformTemplate{
     el: Vec<FormFilled>,
 }
 
+#[derive(Template)]
+#[template(path = "admin/form_edit.html")]
+pub struct AdmineditformTemplate{
+    el: Vec<FormFilled>,
+}
+
 
 pub fn admin_router() -> Router<DbPools> {
     Router::new()
         .route("/admin/form/new", get(admin_new_form).post(admin_new_form_post))
+        .route("/admin/form/edit/:id", get(edit_form))
         .route("/admin", get(admin))
         .route("/admin/siteconfig", get(siteconfig))
         .layer(middleware::from_fn(admin_auth_middleware))
@@ -139,4 +146,9 @@ pub async fn admin_new_form_post(
     // We will redraw the forms for every add. 
     // Redirect to admin is only for finish command.
     Redirect::to("/admin").into_response()
+}
+
+pub async fn edit_form()-> Response<Body>{
+   let page =  AdmineditformTemplate {el: vec![]};
+   page.into_response()
 }
