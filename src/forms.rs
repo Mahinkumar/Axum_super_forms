@@ -34,7 +34,7 @@ pub struct FormInputAll {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct FormField {
-    pub fid: String,
+    pub fid: i32,
     pub typ: String,
     pub fname: String,
     pub question: String,

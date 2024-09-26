@@ -26,12 +26,6 @@
                 <input name="Formsgroup" class="form-input w-full" type="number">
             </label>
             <hr>
-            {% for els in el %}
-            <label class="block">
-              <span class="text-gray-700">{{els.fields.question}}</span>
-              <input type={{els.fields.typ}} class="mt-1 block w-full form-input" placeholder="{{els.fields.fname}}" name="{{els.fields.fname}}" value="{{els.value}}"/>
-            </label>
-            {% endfor %}
             <div class="flex space-x-4 justify-evenly w-full mb-12">
                 <button type="submit" class="w-80 h-12 bg-black text-white" name="action" value="Add">Create Form</button>
             </div>

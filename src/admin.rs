@@ -1,11 +1,7 @@
 use crate::{
-    forms::{FormField, FormInput}, jwt_auth::{JWToken, Utype}, DbPools
+    forms::FormInput, jwt_auth::{JWToken, Utype}, DbPools
 };
 
-struct FormFilled{
-    value: String,
-    fields: FormField,
-}
 
 use askama_axum::{IntoResponse, Template};
 use axum::{
@@ -19,6 +15,19 @@ use axum::{
 };
 use axum_extra::extract::cookie::CookieJar;
 use tower_cookies::{CookieManagerLayer, Cookies};
+
+#[derive(Debug)]
+#[allow(unused)]
+pub struct FormData{
+    name: String,
+    desc: String,
+    start: String,
+    end: String,
+    gid: i32
+}
+
+
+
 
 #[derive(Template)]
 #[template(path = "admin/adminLogin.html")]
@@ -52,15 +61,11 @@ pub struct AdminStatTemplate<'a> {
 
 #[derive(Template)]
 #[template(path = "admin/adminnewform.html")]
-pub struct AdminnewformTemplate{
-    el: Vec<FormFilled>,
-}
+pub struct AdminnewformTemplate{}
 
 #[derive(Template)]
 #[template(path = "admin/form_edit.html")]
-pub struct AdmineditformTemplate{
-    el: Vec<FormFilled>,
-}
+pub struct AdmineditformTemplate{}
 
 
 pub fn admin_router() -> Router<DbPools> {
@@ -113,8 +118,7 @@ pub async fn admin_auth_middleware(request: Request, next: Next) -> Response<Bod
 }
 
 pub async fn admin_new_form()-> Response<Body>{
-    let els: Vec<FormFilled> = vec![];
-    let formnew = AdminnewformTemplate{ el: els };
+    let formnew = AdminnewformTemplate{};
     formnew.into_response()
 }
 
@@ -130,25 +134,19 @@ pub async fn admin_new_form_post(
     let mut form_inputs: Vec<FormInput> = vec![];
     for i in v {
         let kv = i.rsplit_once("=").expect("Unable to split");
-        if kv.0 == "action"{
-            if kv.1 == "Add"{
-                println!("Form New | Add command Recieved");
-            }else if kv.1 == "Finish"{
-                println!("Form New | Finish command Recieved");
-            }
-        }
         let item: FormInput = FormInput {
             name: kv.0.to_string(),
             value: kv.1.to_string(),
         };
         form_inputs.push(item);
     }
+    
     // We will redraw the forms for every add. 
     // Redirect to admin is only for finish command.
     Redirect::to("/admin").into_response()
 }
 
 pub async fn edit_form()-> Response<Body>{
-   let page =  AdmineditformTemplate {el: vec![]};
+   let page =  AdmineditformTemplate {};
    page.into_response()
 }
