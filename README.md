@@ -10,12 +10,15 @@ under high loads.
 1. Admin console with realtime analytics
 2. Group policies to provide fine grained access to users
 3. Authentication support for admins and users
-5. Fully customizable forms
-6. Dynamic form inputs (Updates in realtime)
-7. Form history and record support for users and admin
-8. Site customization support
-9. Email Support
-10. Form Previews
+4. Fully customizable forms
+5. Dynamic form inputs (Updates in realtime)
+6. Form history and record support for users and admin
+7. Site customization support
+8. Email Support
+9. Form Previews
+10. Feature packed UI with built-in Themes
+11. Dark and Light modes by default
+12. Responsive across all devices
 
 ## Architecture
 <img width="700" alt="Axum Super Forms Architecture" src="https://github.com/user-attachments/assets/f2026e3c-75e4-42cf-adf9-7faadc9d17a0">
