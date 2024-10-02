@@ -33,13 +33,25 @@ pub struct Page404Template<'a> {
     message: &'a str,
 }
 
+#[derive(Template)]
+#[template(path = "user/profile.html")]
+pub struct ProfileTemplate<'a> {
+    name: &'a str,
+}
+
 pub fn client_router() -> Router<DbPools> {
     Router::new()
         .route("/", get(home))
+        .route("/profile", get(profile))
         .merge(route404())
         .layer(middleware::from_fn(client_auth_middleware))
         .layer(CookieManagerLayer::new())
     //  .layer(TraceLayer::new_for_http()) // For Debug only
+}
+
+pub async fn profile()->Response<Body>{
+    let profilepage = ProfileTemplate{name : "User"};
+    return profilepage.into_response();
 }
 
 pub fn route404() -> Router<DbPools> {

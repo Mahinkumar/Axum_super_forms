@@ -1,0 +1,13 @@
+{% extends "nav.html" %}
+
+{% block title %}Forms Home{% endblock %}
+
+
+{% block content %}
+    <section class="w-screen min-h-screen">
+       <div class="w-screen items-center flex justify-center h-screen">
+        Profile Page for {{name}}
+       </div>
+    </section>
+  {% call super() %}
+{% endblock %}
