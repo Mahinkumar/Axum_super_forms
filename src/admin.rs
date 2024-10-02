@@ -67,15 +67,27 @@ pub struct AdminnewformTemplate{}
 #[template(path = "admin/form_edit.html")]
 pub struct AdmineditformTemplate{}
 
+#[derive(Template)]
+#[template(path = "admin/admin_profile.html")]
+pub struct AdminProfileTemplate<'a> {
+    name: &'a str,
+}
+
 
 pub fn admin_router() -> Router<DbPools> {
     Router::new()
         .route("/admin/form/new", get(admin_new_form).post(admin_new_form_post))
         .route("/admin/form/edit/:id", get(edit_form))
+        .route("/admin/profile", get(admin_profile))
         .route("/admin", get(admin))
         .route("/admin/siteconfig", get(siteconfig))
         .layer(middleware::from_fn(admin_auth_middleware))
         .layer(CookieManagerLayer::new())
+}
+
+pub async fn admin_profile()->Response<Body>{
+    let profilepage = AdminProfileTemplate{name : "Admin"};
+    return profilepage.into_response();
 }
 
 pub async fn admin() -> Response<Body> {
