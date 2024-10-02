@@ -17,10 +17,17 @@ cd axum_super_forms
 ```bash
 npm install
 ```
-6. Build and run the server using the following commands
+5. Build and run the server using the following commands
 ```bash
-cargo build --release
+cargo build --release #If you only want to build, use this command
+cargo run --release #You can directly build and run with this single command
 ```
+> [!NOTE]  
+> The Server will automatically check for Existing DataBase entries and perform migrations if necessary.<br>
+> It also create few default entries for testing and evaluation purposes.<br>
+> Existing entries will not be overwritten (except for default entries) in case of conflicting.
+
+
 
 ## Features
 1. Admin console with realtime analytics
