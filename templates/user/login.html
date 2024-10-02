@@ -1,22 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="/output.css" rel="stylesheet"/>
-    <title>Axum Forms Login</title>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="/output.css" rel="stylesheet" />
+  <title>Axum Forms Login</title>
 </head>
-    <section class="bg-gray-100 text-gray-700 w-screen h-screen flex justify-center items-center">
-        <div class="w-96 h-64 bg-white shadow-lg flex flex-col justify-evenly">
-          <div class="pl-8 space-y-2">
-            <h1 class="text-3xl font-bold w-full h-8">Axum Forms Login</h1>
-            <h2 class="text-xl w-full h-8">{{message}}</h2>
-          </div>
-          <form method="post" class="w-96 flex flex-col justify-around items-center space-y-4">
-            <input type="text" name="key" class="w-80 form-input block text-xl text-center tracking-[0.8em]" required maxlength="8" placeholder="________">
-            <button type="submit" class="w-80 h-12 bg-black text-white">Submit</button>
-          </form>
-        </div>
-    </section>
+<section class="bg-gray-100 text-gray-700 w-screen h-screen flex justify-center items-center">
+  <div class="w-96 h-64 bg-white shadow-lg flex flex-col justify-evenly">
+    <div class="pl-8 space-y-2">
+      <h1 class="text-3xl font-bold w-full h-8">Axum Forms Login</h1>
+      <h2 class="text-xl w-full h-8">{{message}}</h2>
+    </div>
+    <form method="post" class="w-96 flex flex-col justify-around items-center space-y-4">
+      <input type="text" name="key" class="w-80 form-input block text-xl text-center tracking-[0.8em]" required
+        maxlength="8" placeholder="________">
+      <button type="submit" class="w-80 h-12 bg-black text-white">Submit</button>
+    </form>
+  </div>
+</section>
+
 </html>

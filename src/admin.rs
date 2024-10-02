@@ -1,7 +1,8 @@
 use crate::{
-    forms::FormInput, jwt_auth::{JWToken, Utype}, DbPools
+    forms::FormInput,
+    jwt_auth::{JWToken, Utype},
+    DbPools,
 };
-
 
 use askama_axum::{IntoResponse, Template};
 use axum::{
@@ -18,16 +19,13 @@ use tower_cookies::{CookieManagerLayer, Cookies};
 
 #[derive(Debug)]
 #[allow(unused)]
-pub struct FormData{
+pub struct FormData {
     name: String,
     desc: String,
     start: String,
     end: String,
-    gid: i32
+    gid: i32,
 }
-
-
-
 
 #[derive(Template)]
 #[template(path = "admin/adminLogin.html")]
@@ -61,11 +59,11 @@ pub struct AdminStatTemplate<'a> {
 
 #[derive(Template)]
 #[template(path = "admin/adminnewform.html")]
-pub struct AdminnewformTemplate{}
+pub struct AdminnewformTemplate {}
 
 #[derive(Template)]
 #[template(path = "admin/form_edit.html")]
-pub struct AdmineditformTemplate{}
+pub struct AdmineditformTemplate {}
 
 #[derive(Template)]
 #[template(path = "admin/admin_profile.html")]
@@ -73,10 +71,12 @@ pub struct AdminProfileTemplate<'a> {
     name: &'a str,
 }
 
-
 pub fn admin_router() -> Router<DbPools> {
     Router::new()
-        .route("/admin/form/new", get(admin_new_form).post(admin_new_form_post))
+        .route(
+            "/admin/form/new",
+            get(admin_new_form).post(admin_new_form_post),
+        )
         .route("/admin/form/edit/:id", get(edit_form))
         .route("/admin/profile", get(admin_profile))
         .route("/admin", get(admin))
@@ -85,8 +85,8 @@ pub fn admin_router() -> Router<DbPools> {
         .layer(CookieManagerLayer::new())
 }
 
-pub async fn admin_profile()->Response<Body>{
-    let profilepage = AdminProfileTemplate{name : "Admin"};
+pub async fn admin_profile() -> Response<Body> {
+    let profilepage = AdminProfileTemplate { name: "Admin" };
     return profilepage.into_response();
 }
 
@@ -129,19 +129,17 @@ pub async fn admin_auth_middleware(request: Request, next: Next) -> Response<Bod
     }
 }
 
-pub async fn admin_new_form()-> Response<Body>{
-    let formnew = AdminnewformTemplate{};
+pub async fn admin_new_form() -> Response<Body> {
+    let formnew = AdminnewformTemplate {};
     formnew.into_response()
 }
 
-pub async fn siteconfig()->Response<Body>{
-    let config = ConfigTemplate{ name: "Admin"};
+pub async fn siteconfig() -> Response<Body> {
+    let config = ConfigTemplate { name: "Admin" };
     config.into_response()
 }
 
-pub async fn admin_new_form_post(
-    State(_db_pools): State<DbPools>,
-    body: String) -> Response<Body>{
+pub async fn admin_new_form_post(State(_db_pools): State<DbPools>, body: String) -> Response<Body> {
     let v: Vec<&str> = body.rsplit('&').collect();
     let mut form_inputs: Vec<FormInput> = vec![];
     for i in v {
@@ -152,13 +150,13 @@ pub async fn admin_new_form_post(
         };
         form_inputs.push(item);
     }
-    
-    // We will redraw the forms for every add. 
+
+    // We will redraw the forms for every add.
     // Redirect to admin is only for finish command.
     Redirect::to("/admin").into_response()
 }
 
-pub async fn edit_form()-> Response<Body>{
-   let page =  AdmineditformTemplate {};
-   page.into_response()
+pub async fn edit_form() -> Response<Body> {
+    let page = AdmineditformTemplate {};
+    page.into_response()
 }

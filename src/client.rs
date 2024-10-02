@@ -49,8 +49,8 @@ pub fn client_router() -> Router<DbPools> {
     //  .layer(TraceLayer::new_for_http()) // For Debug only
 }
 
-pub async fn profile()->Response<Body>{
-    let profilepage = ProfileTemplate{name : "User"};
+pub async fn profile() -> Response<Body> {
+    let profilepage = ProfileTemplate { name: "User" };
     return profilepage.into_response();
 }
 

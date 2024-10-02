@@ -1,5 +1,6 @@
 use axum::{extract::Request, Router, ServiceExt};
 use bb8_redis::{bb8::Pool, RedisConnectionManager};
+use console::style;
 use server::shutdown_commits;
 use sqlx::Postgres;
 use std::net::SocketAddr;
@@ -8,7 +9,6 @@ use tokio::time::Duration;
 use tower::Layer;
 use tower_http::normalize_path::{NormalizePath, NormalizePathLayer};
 use tower_http::timeout::TimeoutLayer;
-use console::style;
 
 pub mod admin;
 pub mod auth;
@@ -51,7 +51,6 @@ async fn main() {
         redis_pool,
     };
 
-
     let axum_router = Router::new()
         .merge(login_router())
         .merge(admin_router())
@@ -69,7 +68,11 @@ async fn main() {
 
 async fn serve(app: NormalizePath<Router>, port: u16) {
     println!("--------------------------------------------------------------------");
-    let url = format!("{}{}",style("http://127.0.0.1:").cyan().underlined(),style(port).cyan().underlined());
+    let url = format!(
+        "{}{}",
+        style("http://127.0.0.1:").cyan().underlined(),
+        style(port).cyan().underlined()
+    );
     println!("Serving on address             : {url}");
     println!("====================================================================");
     let addr = SocketAddr::from((ADDR, port));

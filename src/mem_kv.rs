@@ -81,14 +81,14 @@ pub async fn offload_all_cached_form_inputs(
 ) {
     let mut redis_conn = conn_pool.get().await.expect("Unable to acquire connection");
     let keys: Vec<String> = redis_conn.keys("*_FormIK").await.unwrap();
-    
+
     let mut n: u32 = 0;
     for key in keys {
         let cached_input: FormInputAll = redis_conn.get(&key).await.expect("Unable to get Keys");
         let uid: i32 = cached_input
-                .user_id
-                .parse()
-                .expect("Unable to parse user id. USER ID NOT AN INTEGER");
+            .user_id
+            .parse()
+            .expect("Unable to parse user id. USER ID NOT AN INTEGER");
         let uname = cached_input.uname;
         let fname = cached_input.fname;
 
@@ -103,9 +103,14 @@ pub async fn offload_all_cached_form_inputs(
                 .bind(vals.value));
         }
 
-        let mut tx = db_conn_pool.begin().await.expect("Unable to acquire transaction pool");
+        let mut tx = db_conn_pool
+            .begin()
+            .await
+            .expect("Unable to acquire transaction pool");
         for sql in sql_batch {
-            sql.execute( &mut *tx).await.expect("Unable to complete transaction.");
+            sql.execute(&mut *tx)
+                .await
+                .expect("Unable to complete transaction.");
         }
 
         tx.commit().await.expect("Unable to commit Tranasaction");
@@ -113,7 +118,7 @@ pub async fn offload_all_cached_form_inputs(
             .del::<&str, ()>(&key)
             .await
             .expect("Unable to clear key after offloading to db");
-        n+=1;
+        n += 1;
     }
     println!("Offloaded {n} cached form input(s) to database.");
 }
