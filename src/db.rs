@@ -1,6 +1,6 @@
 use crate::{admin::FormCred, auth::hash_password, forms::FormField};
 use bb8_redis::{bb8::Pool, redis, RedisConnectionManager};
-use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono::NaiveDateTime;
 use dotenvy::dotenv;
 use redis::AsyncCommands;
 use redis_macros::{FromRedisValue, ToRedisArgs};
@@ -219,23 +219,21 @@ pub async fn get_form_fields(conn: &sqlx::Pool<Postgres>, form_id: &String) -> V
 }
 
 pub async fn new_form_with_id(conn: &sqlx::Pool<Postgres>,data: FormCred)-> i32{
-    let mut _transaction = conn.begin().await.expect("Unable to get transaction lock");
+    let mut transaction = conn.begin().await.expect("Unable to get transaction lock");
 
     let dstart = NaiveDateTime::parse_from_str(&data.start, "%Y-%m-%dT%H:%M").expect("Invalid date format");
     let dend = NaiveDateTime::parse_from_str(&data.end, "%Y-%m-%dT%H:%M").expect("Invalid date format");
     
-    let _datetime_s: chrono::DateTime<chrono::Utc> = dstart.and_utc();
-    let _datetime_e: chrono::DateTime<chrono::Utc> = dend.and_utc();
+    let datetime_s: chrono::DateTime<chrono::Utc> = dstart.and_utc();
+    let datetime_e: chrono::DateTime<chrono::Utc> = dend.and_utc();
 
     // The DATABASE should create a new entry and return the created forms id.
-    /*sqlx::query("INSERT INTO form_register(gid, form_name, form_description, startdate, starttime, enddate, endtime) VALUES($1, $2, $3, $4, $5, $6, $7) ON CONFLICT DO NOTHING;")
+    sqlx::query("INSERT INTO form_register(gid, form_name, form_description, startdatetime, enddatetime) VALUES($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING;")
         .bind(data.gid)
         .bind(data.name)
         .bind(data.desc)
-        .bind(datetime_s.date_naive())
-        .bind(datetime_s.time())
-        .bind(datetime_e.date_naive())
-        .bind(datetime_e.time())
+        .bind(datetime_s)
+        .bind(datetime_e)
         .execute(&mut *transaction)
         .await
         .expect("Unable to create New Form Entry in table");
@@ -245,11 +243,11 @@ pub async fn new_form_with_id(conn: &sqlx::Pool<Postgres>,data: FormCred)-> i32{
         .await
         .expect("Unable to complete setup transactions");
 
-    let id = sqlx::query_as::<Postgres, (i32,)>("SELECT fid FROM form_register TAIL 1")
+    let id = sqlx::query_as::<Postgres, (i32,)>("SELECT fid FROM form_register order by fid desc limit 1")
         .fetch_one(conn)
         .await
         .expect("Unable to fetch for copy");
-    */
-    10
+    
+    id.0 // Test Value
 
 }

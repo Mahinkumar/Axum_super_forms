@@ -144,20 +144,18 @@ pub async fn admin_new_form_post(State(db_pools): State<DbPools>, body: String) 
     let mut form_inputs: FormCred = FormCred {name:"".to_string(),desc:"".to_string(),start:"".to_string(),end:"".to_string(),gid:1};
     for i in v {
         let kv = i.rsplit_once("=").expect("Unable to split");
-        println!("kv 1:{}, 2:{}",kv.0,kv.1);
         match kv.0{
             "form_name" => {form_inputs.name = kv.1.to_owned()},
             "form_description" => {form_inputs.desc = kv.1.to_owned()},
             "start_time" => {form_inputs.start = kv.1.to_owned()},
             "end_time" => {form_inputs.end = kv.1.to_owned()},
             "Formsgroup" => {form_inputs.gid = kv.1.parse::<i32>().unwrap()}
-            _ => {println!("Invalid Input")}
+            _ => {}
         }
     }
     let id = new_form_with_id(&db_pools.postgres_pool,form_inputs).await;
     // We will redraw the forms for every add.
     // Redirect to admin is only for finish command.
-    println!("Id: {id}");
     let uri = format!("/admin/form/edit/{id}");
     Redirect::to(&uri).into_response()
 }
