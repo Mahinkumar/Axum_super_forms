@@ -54,7 +54,7 @@ pub async fn retrieve_forms(
 
 pub async fn cache_form_input(
     user_id: &String,
-    form: &String,
+    form: &i32,
     conn_pool: &Pool<RedisConnectionManager>,
     inputs: FormInputAll,
 ) {
@@ -90,7 +90,7 @@ pub async fn offload_all_cached_form_inputs(
             .parse()
             .expect("Unable to parse user id. USER ID NOT AN INTEGER");
         let uname = cached_input.uname;
-        let fname = cached_input.fname;
+        let fid = cached_input.fid;
 
         let mut sql_batch = vec![];
 
@@ -98,7 +98,7 @@ pub async fn offload_all_cached_form_inputs(
             sql_batch.push(sqlx::query("INSERT INTO form_data(username,user_id,fid,input_name,input_value) VALUES($1,$2,$3,$4,$5) ON CONFLICT DO NOTHING;")
                 .bind(&uname)
                 .bind(uid)
-                .bind(&fname)
+                .bind(&fid)
                 .bind(vals.name)
                 .bind(vals.value));
         }

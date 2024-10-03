@@ -28,7 +28,7 @@ pub struct FormInput {
 pub struct FormInputAll {
     pub user_id: String,
     pub uname: String,
-    pub fname: String,
+    pub fid: i32,
     pub inputs: Vec<FormInput>,
 }
 
@@ -116,11 +116,11 @@ pub async fn form_post_handler(
     let inputs: FormInputAll = FormInputAll {
         user_id: claims.claims.id.clone(),
         uname: username.clone(),
-        fname: form_id.clone(),
+        fid: form_id.parse::<i32>().unwrap(),
         inputs: form_inputs,
     };
 
-    cache_form_input(&claims.claims.id, &form_id, &db_pools.redis_pool, inputs).await;
+    cache_form_input(&claims.claims.id, &form_id.parse::<i32>().unwrap(), &db_pools.redis_pool, inputs).await;
 
     let forms = FormBackTemplate {
         message1: "Form Submission Success",
