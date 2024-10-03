@@ -27,8 +27,10 @@ CREATE TABLE IF NOT EXISTS form_register
      gid       INTEGER DEFAULT 1,
      form_name TEXT,
      form_description TEXT DEFAULT 'No Description Provided',
-     startdate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-     enddate TIMESTAMP DEFAULT NULL,
+     startdate DATE DEFAULT CURRENT_DATE,
+     starttime TIME DEFAULT CURRENT_TIME,
+     enddate DATE DEFAULT NULL,
+     endtime TIME DEFAULT NULL,
      dynamic BOOLEAN DEFAULT false
   );
 

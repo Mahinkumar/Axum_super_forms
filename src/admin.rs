@@ -1,7 +1,5 @@
 use crate::{
-    forms::FormInput,
-    jwt_auth::{JWToken, Utype},
-    DbPools,
+    db::new_form_with_id, jwt_auth::{JWToken, Utype}, DbPools
 };
 
 use askama_axum::{IntoResponse, Template};
@@ -16,15 +14,16 @@ use axum::{
 };
 use axum_extra::extract::cookie::CookieJar;
 use tower_cookies::{CookieManagerLayer, Cookies};
+use urlencoding::decode;
 
 #[derive(Debug)]
 #[allow(unused)]
-pub struct FormData {
-    name: String,
-    desc: String,
-    start: String,
-    end: String,
-    gid: i32,
+pub struct FormCred {
+    pub name: String,
+    pub desc: String,
+    pub start: String,
+    pub end: String,
+    pub gid: i32,
 }
 
 #[derive(Template)]
@@ -139,20 +138,26 @@ pub async fn siteconfig() -> Response<Body> {
     config.into_response()
 }
 
-pub async fn admin_new_form_post(State(_db_pools): State<DbPools>, body: String) -> Response<Body> {
+pub async fn admin_new_form_post(State(db_pools): State<DbPools>, body: String) -> Response<Body> {
+    let body = decode(&body).expect("Unable to handle the post request");
     let v: Vec<&str> = body.rsplit('&').collect();
-    let mut form_inputs: Vec<FormInput> = vec![];
+    let mut form_inputs: FormCred = FormCred {name:"".to_string(),desc:"".to_string(),start:"".to_string(),end:"".to_string(),gid:1};
     for i in v {
         let kv = i.rsplit_once("=").expect("Unable to split");
-        let item: FormInput = FormInput {
-            name: kv.0.to_string(),
-            value: kv.1.to_string(),
-        };
-        form_inputs.push(item);
+        println!("kv 1:{}, 2:{}",kv.0,kv.1);
+        match kv.0{
+            "form_name" => {form_inputs.name = kv.1.to_owned()},
+            "form_description" => {form_inputs.desc = kv.1.to_owned()},
+            "start_time" => {form_inputs.start = kv.1.to_owned()},
+            "end_time" => {form_inputs.end = kv.1.to_owned()},
+            "Formsgroup" => {form_inputs.gid = kv.1.parse::<i32>().unwrap()}
+            _ => {println!("Invalid Input")}
+        }
     }
-
+    let id = new_form_with_id(&db_pools.postgres_pool,form_inputs).await;
     // We will redraw the forms for every add.
     // Redirect to admin is only for finish command.
+    println!("Id: {id}");
     Redirect::to("/admin").into_response()
 }
 
