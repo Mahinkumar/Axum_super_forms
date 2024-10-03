@@ -24,6 +24,9 @@ pub struct FormData {
     pub fields: Vec<FormField>,
 }
 
+/// Returns Postgres Database connection pool
+/// Requires the Database connection URL to be specified in environment.
+/// The Default maximum connection configured is 5 
 pub async fn get_db_conn_pool() -> sqlx::Pool<Postgres> {
     dotenv().ok();
     PgPoolOptions::new()
@@ -33,6 +36,11 @@ pub async fn get_db_conn_pool() -> sqlx::Pool<Postgres> {
         .expect("Unable to create a connection pool")
 }
 
+/// Sets up database on First use
+/// Performs Database Migration 
+/// Creates Default Admin Account based on environment Variables
+/// Creates Default User Account for Testing
+/// Initializes database with Test Forms
 pub async fn setup_db(conn: &sqlx::Pool<Postgres>) {
     sqlx::migrate!("./migrations")
         .run(conn)
@@ -88,6 +96,9 @@ pub async fn setup_db(conn: &sqlx::Pool<Postgres>) {
         .expect("Unable to complete setup transactions");
 }
 
+
+/// Ping Postgres Database and return True if the Database server is Active.
+/// Performs a simple query to check if the database is operational
 pub async fn ping_db(conn: &sqlx::Pool<Postgres>) -> bool {
     let row: (i64,) = sqlx::query_as("SELECT $1;")
         .bind(150_i64)
@@ -97,6 +108,9 @@ pub async fn ping_db(conn: &sqlx::Pool<Postgres>) -> bool {
     row.0 == 150
 }
 
+/// Retrieve Admin Data from Email Credentials.
+/// Requires Postgres Connection Pool to be passed
+/// Returns Admin ID, Admin name and Password Hash
 pub async fn retrieve_admin(
     conn: sqlx::Pool<Postgres>,
     e_mail: String,
@@ -107,6 +121,9 @@ pub async fn retrieve_admin(
         .await
 }
 
+/// Retrieve user Data from Unique Key.
+/// Requires Postgres Connection Pool to be passed
+/// Returns user ID, User name and Email
 pub async fn retrieve_user(
     conn: &sqlx::Pool<Postgres>,
     key: String,
@@ -117,6 +134,9 @@ pub async fn retrieve_user(
         .await
 }
 
+/// Performs Redis Cache Initialization and Loading
+/// Loads all Form and User Login Credentials into Redis KV from Postgres Database
+/// Requires Redis and Postgres Pool references to be passed
 pub async fn redis_load(conn: &sqlx::Pool<Postgres>, redis_pool: &Pool<RedisConnectionManager>) {
     let mut redis_conn = redis_pool
         .get()
@@ -199,6 +219,8 @@ pub async fn redis_load(conn: &sqlx::Pool<Postgres>, redis_pool: &Pool<RedisConn
     println!("Loaded {fcount} form(s) data into Memory.")
 }
 
+///Get Form fields of Form from form Id
+///Retrieves Data from Database and Returns it as Vector of FormFields Type
 pub async fn get_form_fields(conn: &sqlx::Pool<Postgres>, form_id: &String) -> Vec<FormField> {
     let all_fields: Vec<(i32, String, String, String)> =
         sqlx::query_as("SELECT fid,typ,field_name,question FROM forms WHERE fid = $1;")
@@ -218,6 +240,9 @@ pub async fn get_form_fields(conn: &sqlx::Pool<Postgres>, form_id: &String) -> V
     vec
 }
 
+/// Add a new form Entry in From Register table in Postgres
+/// Gets Form Data by type FormCred
+/// Returns the newly created form's form ID
 pub async fn new_form_with_id(conn: &sqlx::Pool<Postgres>,data: FormCred)-> i32{
     let mut transaction = conn.begin().await.expect("Unable to get transaction lock");
 
@@ -246,7 +271,7 @@ pub async fn new_form_with_id(conn: &sqlx::Pool<Postgres>,data: FormCred)-> i32{
     let id = sqlx::query_as::<Postgres, (i32,)>("SELECT fid FROM form_register order by fid desc limit 1")
         .fetch_one(conn)
         .await
-        .expect("Unable to fetch for copy");
+        .expect("Unable to get id of newly created form");
     
     id.0 // Test Value
 
