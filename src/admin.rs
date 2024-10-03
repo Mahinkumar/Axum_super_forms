@@ -158,7 +158,8 @@ pub async fn admin_new_form_post(State(db_pools): State<DbPools>, body: String) 
     // We will redraw the forms for every add.
     // Redirect to admin is only for finish command.
     println!("Id: {id}");
-    Redirect::to("/admin").into_response()
+    let uri = format!("/admin/form/edit/{id}");
+    Redirect::to(&uri).into_response()
 }
 
 pub async fn edit_form() -> Response<Body> {

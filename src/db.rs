@@ -227,7 +227,7 @@ pub async fn new_form_with_id(conn: &sqlx::Pool<Postgres>,data: FormCred)-> i32{
     let _datetime_s: chrono::DateTime<chrono::Utc> = dstart.and_utc();
     let _datetime_e: chrono::DateTime<chrono::Utc> = dend.and_utc();
 
-    
+    // The DATABASE should create a new entry and return the created forms id.
     /*sqlx::query("INSERT INTO form_register(gid, form_name, form_description, startdate, starttime, enddate, endtime) VALUES($1, $2, $3, $4, $5, $6, $7) ON CONFLICT DO NOTHING;")
         .bind(data.gid)
         .bind(data.name)
