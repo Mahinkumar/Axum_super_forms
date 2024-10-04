@@ -1,4 +1,4 @@
-use crate::{admin::FormCred, auth::hash_password, forms::FormField};
+use crate::{admin::FormCred, auth::hash_password, forms::FormField, server::exit_cleanly};
 use bb8_redis::{bb8::Pool, redis, RedisConnectionManager};
 use chrono::NaiveDateTime;
 use dotenvy::dotenv;
@@ -29,11 +29,17 @@ pub struct FormData {
 /// The Default maximum connection configured is 5 
 pub async fn get_db_conn_pool() -> sqlx::Pool<Postgres> {
     dotenv().ok();
-    PgPoolOptions::new()
+    let pg = PgPoolOptions::new()
         .max_connections(5)
         .connect(&env::var("DATABASE_URL").expect("env variable DATABASE_URL must be set!"))
-        .await
-        .expect("Unable to create a connection pool")
+        .await;
+    
+    let pg_pool = match pg {
+        Err(_) => {exit_cleanly("Unable to Connect and test Postgres Server.").await},
+        Ok(connection_pool) => {connection_pool}
+    }; 
+    pg_pool
+    
 }
 
 /// Sets up database on First use

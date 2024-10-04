@@ -1,7 +1,7 @@
 // Server maintenance and check code here.
 use console::style;
 use indicatif::ProgressBar;
-use std::time::Duration;
+use std::{process::exit, time::Duration};
 
 use crate::{
     db::{get_db_conn_pool, ping_db, redis_load, setup_db},
@@ -54,3 +54,10 @@ pub async fn shutdown_commits() {
     let (redis_pool, postgres_pool) = (get_redis_pool().await, get_db_conn_pool().await);
     offload_all_cached_form_inputs(&redis_pool, &postgres_pool).await;
 }
+
+pub async fn exit_cleanly(reason: &str) -> ! {
+    println!("{}",reason);
+    println!("Automatic Shutdown Initiated !");
+    println!("Exiting Cleanly..");
+    exit(0)
+} 

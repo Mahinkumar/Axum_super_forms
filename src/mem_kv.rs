@@ -10,22 +10,22 @@ use sqlx::Postgres;
 use std::env;
 
 use crate::{
-    db::{FormData, User},
-    forms::FormInputAll,
+    db::{FormData, User}, forms::FormInputAll, server::exit_cleanly
 };
 
 pub async fn get_redis_pool() -> Pool<RedisConnectionManager> {
     dotenv().ok();
     let manager = RedisConnectionManager::new(
         env::var("REDIS_CONNECTION_URL").expect("env variable REDIS_CONNECTION_URL must be set!"),
-    )
-    .unwrap();
-
+    ).unwrap();
     bb8::Pool::builder().build(manager).await.unwrap()
 }
 
 pub async fn ping(conn_pool: &Pool<RedisConnectionManager>) -> bool {
-    let mut conn = conn_pool.get().await.unwrap();
+    let mut conn = match conn_pool.get().await {
+        Err(_) => {exit_cleanly("Unable to Connect or Test Redis Server.").await},
+        Ok(connection) => {connection}
+    }; 
     conn.set::<&str, &str, ()>("Check", "Response recieved!")
         .await
         .unwrap();
