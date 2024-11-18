@@ -1,5 +1,6 @@
 > [!IMPORTANT]
 > Planned ALPHA Release date: 7 FEBRUARY 2025 <br>
+> We are planning on a major rework and support for more complex form types. <br>
 
 > [!NOTE]  
 > This Project is a work in progress and is not suitable to be used at this moment.<br>
