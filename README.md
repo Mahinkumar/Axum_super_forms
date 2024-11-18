@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> Planned ALPHA Release date: 7 FEBRUARY 2025 <br>
+
 > [!NOTE]  
 > This Project is a work in progress and is not suitable to be used at this moment.<br>
 > Star the repository for progress and preview release updates.
@@ -30,18 +33,20 @@ cargo run --release #You can directly build and run with this single command
 
 
 ## Features
-1. Admin console with realtime analytics
-2. Group policies to provide fine grained access to users
-3. Authentication support for admins and users
-4. Fully customizable forms
-5. Dynamic form inputs (Updates in realtime)
-6. Form history and record support for users and admin
-7. Site customization support
-8. Email Support
-9. Form Previews
-10. Feature packed UI with built-in Themes
-11. Dark and Light modes by default
-12. Responsive across all devices
+1. Blazingly fast, Scales on demand.
+2. Includes a built in Load Balancer.
+3. Admin console with realtime analytics
+4. Group policies to provide fine grained access to users
+5. Authentication support for admins and users
+6. Fully customizable forms
+7. Dynamic form inputs (Updates in realtime)
+8. Form history and record support for users and admin
+9. Site customization support
+10. Email Support
+11. Form Previews
+12. Feature packed UI with built-in Themes
+13. Dark and Light modes by default
+14. Responsive across all devices
 
 ## Architecture
 <img width="700" alt="Axum Super Forms Architecture" src="https://github.com/user-attachments/assets/f2026e3c-75e4-42cf-adf9-7faadc9d17a0">
